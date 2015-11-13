@@ -6,11 +6,13 @@
     "scripts": {
         "test": "node test/suite.js",
         "watch": "watchify test/js/test.js -o test/js/bundle.js -dv",
-        "start": "npm run watch & serve"
+        "start": "npm run watch & serve",
+        "sources": "browserify -s greinerHormann src/greiner-hormann.js > dist/greiner-hormann.js",
+        "watch:sources": "watchify src -s greinerHormann -o \"src/greiner-hormann.js > dist/greiner-hormann.js\""
     },
     "repository": {
         "type": "git",
-        "url": "https://github.com/w8r/GreinerHormann.git"
+        "url": "https://github.com/platener/GreinerHormann.git"
     },
     "keywords": [
         "polygon",
@@ -23,9 +25,9 @@
     "author": "Alexander Milevski <info@w8r.name>",
     "license": "MIT",
     "bugs": {
-        "url": "https://github.com/w8r/GreinerHormann/issues"
+        "url": "https://github.com/platener/GreinerHormann/issues"
     },
-    "homepage": "https://github.com/w8r/GreinerHormann",
+    "homepage": "https://github.com/platener/GreinerHormann",
     "devDependencies": {
         "catw": "^0.2.0",
         "leaflet": "^0.7.3",

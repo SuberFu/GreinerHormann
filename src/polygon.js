@@ -163,6 +163,21 @@ Polygon.prototype.getPoints = function() {
 };
 
 /**
+ * Outputs true if the polygon has a CCW winding
+ * @return {Boolean}
+ */
+Polygon.prototype.isCounterClockwise = function() {
+    var vertex = this.first;
+    var sum = 0;
+
+    do {
+        sum += (vertex.next.x - vertex.x) * (vertex.next.y + vertex.y);
+    } while (!vertex.equals(this.first));
+
+    return sum <= 0;
+};
+
+/**
  * Clip polygon against another one.
  * Result depends on algorithm direction:
  *
@@ -179,6 +194,13 @@ Polygon.prototype.clip = function(clip, sourceForwards, clipForwards) {
         clipVertex = clip.first,
         sourceInClip, clipInSource;
 
+    if(!this.isCounterClockwise()){
+        sourceForwards = !sourceForwards;
+    }
+    if(!clip.isCounterClockwise()){
+        clipForwards = !clipForwards;
+    }
+
     // calculate and mark intersections
     do {
         if (!sourceVertex._isIntersection) {
@@ -188,6 +210,43 @@ Polygon.prototype.clip = function(clip, sourceForwards, clipForwards) {
                         sourceVertex,
                         this.getNext(sourceVertex.next),
                         clipVertex, clip.getNext(clipVertex.next));
+
+                    // fix for vertices located on edges or other vertices
+                    if (i.degenerated()) {
+                        var pertubationLength = 0.000000001; // basic milli -> piko
+
+                        var sourceToPrevX = (sourceVertex.prev.x - sourceVertex.x);
+                        var sourceToPrevY = (sourceVertex.prev.y - sourceVertex.y);
+                        var sourceToNextX = (sourceVertex.next.x - sourceVertex.x);
+                        var sourceToNextY = (sourceVertex.next.y - sourceVertex.y);
+                        if(sourceToNextY/sourceToNextX === sourceToPrevY/sourceToPrevX){
+                            var pertubateX = sourceToNextY;
+                            var pertubateY = - sourceToNextX;
+                        }else{
+                            var pertubateX = sourceToNextX + sourceToPrevX;
+                            var pertubateY = sourceToNextY + sourceToPrevY;
+                        }
+                        var length = Math.sqrt(pertubateX * pertubateX + pertubateY * pertubateY);
+                        pertubateX /= length;
+                        pertubateY /= length;
+                        pertubateX *= pertubationLength;
+                        pertubateY *= pertubationLength;
+
+                        var perturbedVertex = new Vertex(sourceVertex.x + pertubateX, sourceVertex.y + pertubateY);
+
+                        if(perturbedVertex.isInside(this)){
+                            sourceVertex.x -= pertubateX;
+                            sourceVertex.y -= pertubateY;
+                        }else{
+                            sourceVertex.x += pertubateX;
+                            sourceVertex.y += pertubateY;
+                        }
+
+                        i = new Intersection(
+                            sourceVertex,
+                            this.getNext(sourceVertex.next),
+                            clipVertex, clip.getNext(clipVertex.next));
+                    }
 
                     if (i.valid()) {
                         var sourceIntersection =

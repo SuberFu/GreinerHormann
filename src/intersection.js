@@ -57,4 +57,11 @@ Intersection.prototype.valid = function() {
     return (0 < this.toSource && this.toSource < 1) && (0 < this.toClip && this.toClip < 1);
 };
 
+/**
+ * @return {Boolean}
+ */
+Intersection.prototype.degenerated = function() {
+    return (0 == this.toSource) && (0 <= this.toClip && this.toClip <= 1);
+};
+
 module.exports = Intersection;

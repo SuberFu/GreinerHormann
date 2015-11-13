@@ -1,4 +1,4 @@
-!function(e){if("object"==typeof exports&&"undefined"!=typeof module)module.exports=e();else if("function"==typeof define&&define.amd)define([],e);else{var n;"undefined"!=typeof window?n=window:"undefined"!=typeof global?n=global:"undefined"!=typeof self&&(n=self),n.greinerHormann=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.greinerHormann = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 var Polygon = require('./polygon');
 
 /**
@@ -113,6 +113,13 @@ var Intersection = function(s1, s2, c1, c2) {
  */
 Intersection.prototype.valid = function() {
     return (0 < this.toSource && this.toSource < 1) && (0 < this.toClip && this.toClip < 1);
+};
+
+/**
+ * @return {Boolean}
+ */
+Intersection.prototype.degenerated = function() {
+    return (0 == this.toSource) && (0 <= this.toClip && this.toClip <= 1);
 };
 
 module.exports = Intersection;
@@ -283,6 +290,21 @@ Polygon.prototype.getPoints = function() {
 };
 
 /**
+ * Outputs true if the polygon has a CCW winding
+ * @return {Boolean}
+ */
+Polygon.prototype.isCounterClockwise = function() {
+    var vertex = this.first;
+    var sum = 0;
+
+    do {
+        sum += (vertex.next.x - vertex.x) * (vertex.next.y + vertex.y);
+    } while (!vertex.equals(this.first));
+
+    return sum <= 0;
+};
+
+/**
  * Clip polygon against another one.
  * Result depends on algorithm direction:
  *
@@ -299,6 +321,13 @@ Polygon.prototype.clip = function(clip, sourceForwards, clipForwards) {
         clipVertex = clip.first,
         sourceInClip, clipInSource;
 
+    if(!this.isCounterClockwise()){
+        sourceForwards = !sourceForwards;
+    }
+    if(!clip.isCounterClockwise()){
+        clipForwards = !clipForwards;
+    }
+
     // calculate and mark intersections
     do {
         if (!sourceVertex._isIntersection) {
@@ -308,6 +337,43 @@ Polygon.prototype.clip = function(clip, sourceForwards, clipForwards) {
                         sourceVertex,
                         this.getNext(sourceVertex.next),
                         clipVertex, clip.getNext(clipVertex.next));
+
+                    // fix for vertices located on edges or other vertices
+                    if (i.degenerated()) {
+                        var pertubationLength = 0.000000001; // basic milli -> piko
+
+                        var sourceToPrevX = (sourceVertex.prev.x - sourceVertex.x);
+                        var sourceToPrevY = (sourceVertex.prev.y - sourceVertex.y);
+                        var sourceToNextX = (sourceVertex.next.x - sourceVertex.x);
+                        var sourceToNextY = (sourceVertex.next.y - sourceVertex.y);
+                        if(sourceToNextY/sourceToNextX === sourceToPrevY/sourceToPrevX){
+                            var pertubateX = sourceToNextY;
+                            var pertubateY = - sourceToNextX;
+                        }else{
+                            var pertubateX = sourceToNextX + sourceToPrevX;
+                            var pertubateY = sourceToNextY + sourceToPrevY;
+                        }
+                        var length = Math.sqrt(pertubateX * pertubateX + pertubateY * pertubateY);
+                        pertubateX /= length;
+                        pertubateY /= length;
+                        pertubateX *= pertubationLength;
+                        pertubateY *= pertubationLength;
+
+                        var perturbedVertex = new Vertex(sourceVertex.x + pertubateX, sourceVertex.y + pertubateY);
+
+                        if(perturbedVertex.isInside(this)){
+                            sourceVertex.x -= pertubateX;
+                            sourceVertex.y -= pertubateY;
+                        }else{
+                            sourceVertex.x += pertubateX;
+                            sourceVertex.y += pertubateY;
+                        }
+
+                        i = new Intersection(
+                            sourceVertex,
+                            this.getNext(sourceVertex.next),
+                            clipVertex, clip.getNext(clipVertex.next));
+                    }
 
                     if (i.valid()) {
                         var sourceIntersection =
