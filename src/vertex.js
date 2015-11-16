@@ -133,7 +133,7 @@ Vertex.prototype.isInside = function(poly) {
         next = vertex.next || poly.first;
     } while (!vertex.equals(poly.first));
 
-    return oddNodes;
+    return !!oddNodes;
 };
 
 module.exports = Vertex;
