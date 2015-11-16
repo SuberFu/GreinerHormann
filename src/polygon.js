@@ -176,6 +176,56 @@ Polygon.prototype.isCounterClockwise = function() {
   return area(this.getPoints(), true) > 0
 };
 
+Polygon.prototype.findIntersections = function(clip) {
+  var sourceVertex = this.first;
+  var clipVertex = clip.first;
+
+  do {
+    if (!sourceVertex._isIntersection) {
+      do {
+        if (!clipVertex._isIntersection) {
+          var intersection = new Intersection(
+              sourceVertex,
+              this.getNext(sourceVertex.next),
+              clipVertex, clip.getNext(clipVertex.next));
+
+          // test if both edges really intersect
+          if (intersection.valid()) {
+            // create intersection vertices
+            var sourceIntersection = Vertex.createIntersection(
+              intersection.x,
+              intersection.y,
+              intersection.toSource
+            );
+            var clipIntersection = Vertex.createIntersection(
+              intersection.x,
+              intersection.y,
+              intersection.toClip
+            );
+
+            // link vertices
+            sourceIntersection._corresponding = clipIntersection;
+            clipIntersection._corresponding = sourceIntersection;
+
+            // sort vertices into polygons
+            this.insertVertex(
+                sourceIntersection,
+                sourceVertex,
+                this.getNext(sourceVertex.next));
+            clip.insertVertex(
+                clipIntersection,
+                clipVertex,
+                clip.getNext(clipVertex.next));
+          }
+        }
+        clipVertex = clipVertex.next;
+      } while (!clipVertex.equals(clip.first));
+    }
+
+    sourceVertex = sourceVertex.next;
+  } while (!sourceVertex.equals(this.first));
+}
+
 /**
  * Clip polygon against another one.
  * Result depends on algorithm direction:
@@ -201,77 +251,7 @@ Polygon.prototype.clip = function(clip, sourceForwards, clipForwards) {
     // }
 
     // calculate and mark intersections
-    do {
-        if (!sourceVertex._isIntersection) {
-            do {
-                if (!clipVertex._isIntersection) {
-                    var i = new Intersection(
-                        sourceVertex,
-                        this.getNext(sourceVertex.next),
-                        clipVertex, clip.getNext(clipVertex.next));
-
-                    // fix for vertices located on edges or other vertices
-                    if (i.degenerated()) {
-                        var perturbationLength = 0.000000001; // basic milli -> piko
-
-                        var sourceToPrevX = (sourceVertex.prev.x - sourceVertex.x);
-                        var sourceToPrevY = (sourceVertex.prev.y - sourceVertex.y);
-                        var sourceToNextX = (sourceVertex.next.x - sourceVertex.x);
-                        var sourceToNextY = (sourceVertex.next.y - sourceVertex.y);
-                        if(sourceToNextY/sourceToNextX === sourceToPrevY/sourceToPrevX){
-                            var perturbateX = sourceToNextY;
-                            var perturbateY = - sourceToNextX;
-                        }else{
-                            var perturbateX = sourceToNextX + sourceToPrevX;
-                            var perturbateY = sourceToNextY + sourceToPrevY;
-                        }
-                        var length = Math.sqrt(perturbateX * perturbateX + perturbateY * perturbateY);
-                        perturbateX /= length;
-                        perturbateY /= length;
-                        perturbateX *= perturbationLength;
-                        perturbateY *= perturbationLength;
-
-                        var perturbedVertex = new Vertex(sourceVertex.x + perturbateX, sourceVertex.y + perturbateY);
-
-                        if(perturbedVertex.isInside(this)){
-                            sourceVertex.x -= perturbateX;
-                            sourceVertex.y -= perturbateY;
-                        }else{
-                            sourceVertex.x += perturbateX;
-                            sourceVertex.y += perturbateY;
-                        }
-
-                        i = new Intersection(
-                            sourceVertex,
-                            this.getNext(sourceVertex.next),
-                            clipVertex, clip.getNext(clipVertex.next));
-                    }
-
-                    if (i.valid()) {
-                        var sourceIntersection =
-                            Vertex.createIntersection(i.x, i.y, i.toSource),
-                            clipIntersection =
-                            Vertex.createIntersection(i.x, i.y, i.toClip);
-
-                        sourceIntersection._corresponding = clipIntersection;
-                        clipIntersection._corresponding = sourceIntersection;
-
-                        this.insertVertex(
-                            sourceIntersection,
-                            sourceVertex,
-                            this.getNext(sourceVertex.next));
-                        clip.insertVertex(
-                            clipIntersection,
-                            clipVertex,
-                            clip.getNext(clipVertex.next));
-                    }
-                }
-                clipVertex = clipVertex.next;
-            } while (!clipVertex.equals(clip.first));
-        }
-
-        sourceVertex = sourceVertex.next;
-    } while (!sourceVertex.equals(this.first));
+    this.findIntersections(clip)
 
     // phase two - identify entry/exit points
     sourceVertex = this.first;
@@ -340,6 +320,7 @@ Polygon.prototype.clip = function(clip, sourceForwards, clipForwards) {
         }
     }
 
+    // TODO: we assume closed polygons -- do not double first and last point
     return list;
 };
 
