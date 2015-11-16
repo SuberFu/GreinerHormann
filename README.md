@@ -6,9 +6,11 @@ Greiner-Hormann polygon clipping (fork)
  * Plays nicely with [Leaflet](http://github.com/leaflet/leaflet/), comes with an adaptor for it
  * Handles non-convex polygons and multiple clipping areas
  * ~3kb compressed, no dependencies
+
+## Changes in this fork
+
  * This fork implements the degeneracy problem fix as proposed by [Greiner/Hormann](http://www.inf.usi.ch/hormann/papers/Greiner.1998.ECO.pdf). It moves problematic points outwards by 0.000000001 units.
  * It also removes the polygon winding dependency of the algorithm by detecting the winding.
- * Of the built .js's in dist/ only the greiner-hormann.js currently includes this fix.
 
 [Demo and documentation](http://w8r.github.io/GreinerHormann/)
 
