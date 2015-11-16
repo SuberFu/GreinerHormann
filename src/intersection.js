@@ -28,25 +28,30 @@ var Intersection = function(s1, s2, c1, c2) {
      */
     this.toClip = 0.0;
 
-    var d = (c2.y - c1.y) * (s2.x - s1.x) - (c2.x - c1.x) * (s2.y - s1.y);
-
-    if (d === 0) {
+    // solving linear equation for intersection via determinants
+    // Ax = b with xi = d(xi) / d
+    var determinant = (c2.y - c1.y) * (s2.x - s1.x) - (c2.x - c1.x) * (s2.y - s1.y);
+    // s12 parallel to c12?
+    if (0 === determinant) {
         return;
     }
 
     /**
      * @type {Number}
      */
-    this.toSource = ((c2.x - c1.x) * (s1.y - c1.y) - (c2.y - c1.y) * (s1.x - c1.x)) / d;
+    var determinantSource = (c2.x - c1.x) * (s1.y - c1.y) - (c2.y - c1.y) * (s1.x - c1.x)
+    this.toSource = determinantSource / determinant;
 
     /**
      * @type {Number}
      */
-    this.toClip = ((s2.x - s1.x) * (s1.y - c1.y) - (s2.y - s1.y) * (s1.x - c1.x)) / d;
+    var determinantClip = (s2.x - s1.x) * (s1.y - c1.y) - (s2.y - s1.y) * (s1.x - c1.x)
+    this.toClip = determinantClip / determinant;
 
     if (this.valid()) {
-        this.x = s1.x + this.toSource * (s2.x - s1.x);
-        this.y = s1.y + this.toSource * (s2.y - s1.y);
+      // linear equations
+      this.x = s1.x + this.toSource * (s2.x - s1.x);
+      this.y = s1.y + this.toSource * (s2.y - s1.y);
     }
 };
 
