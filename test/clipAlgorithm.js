@@ -17,7 +17,8 @@ describe('clipAlgorithm', function() {
       [5,1]
     ])
 
-    
+    result = polygon1.clip(polygon2, true, true)
 
+    expect(result == null).to.be.true
   })
 })
