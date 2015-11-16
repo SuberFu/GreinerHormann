@@ -195,4 +195,69 @@ describe('Polygon', function() {
     expect(polygon.hasUnprocessed()).to.be.false
   })
 
+  it('should return list of points as array from doubly-linked list', function() {
+    var points = [
+      [0,0],
+      [1,0],
+      [1,1],
+      [0,1]
+    ]
+    var polygon = new Polygon(points)
+
+    expect(polygon.getPoints()).to.deep.equal(points)
+  })
+
+  it('should return list of points as objects from doubly-linked list', function() {
+    var points = [
+      {x:0,y:0},
+      {x:1,y:0},
+      {x:1,y:1},
+      {x:0,y:1}
+    ]
+
+    var polygon = new Polygon(points)
+    expect(polygon.getPoints()).to.deep.equal(points)
+  })
+
+  it('should detect ccw winding', function() {
+    var pointsArray = [
+      [0,0],
+      [1,0],
+      [1,1],
+      [0,1]
+    ]
+    var pointsObject = [
+      {x:0,y:0},
+      {x:1,y:0},
+      {x:1,y:1},
+      {x:0,y:1}
+    ]
+
+    var polygonArray = new Polygon(pointsArray)
+    var polygonObject = new Polygon(pointsObject)
+
+    expect(polygonArray.isCounterClockwise()).to.be.true
+    expect(polygonObject.isCounterClockwise()).to.be.true
+  })
+
+  it('should detect ccw winding', function() {
+    var pointsArray = [
+      [0,0],
+      [0,1],
+      [1,1],
+      [1,0],
+    ]
+    var pointsObject = [
+      {x:0,y:0},
+      {x:0,y:1},
+      {x:1,y:1},
+      {x:1,y:0}
+    ]
+
+    var polygonArray = new Polygon(pointsArray)
+    var polygonObject = new Polygon(pointsObject)
+
+    expect(polygonArray.isCounterClockwise()).to.be.false
+    expect(polygonObject.isCounterClockwise()).to.be.false
+  })
 })
