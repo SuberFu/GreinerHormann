@@ -62,7 +62,9 @@ Polygon.prototype.addVertex = function(vertex) {
 };
 
 /**
- * Inserts a vertex inbetween start and end
+ * Inserts a vertex inbetween start and end according to its distance.
+ * This is only used for newly created intersections.
+ * (sort-method from pseudocode in Figure 11 of http://www.inf.usi.ch/hormann/papers/Greiner.1998.ECO.pdf)
  *
  * @param {Vertex} vertex
  * @param {Vertex} start
@@ -90,7 +92,7 @@ Polygon.prototype.insertVertex = function(vertex, start, end) {
  * @param  {Vertex} v
  * @return {Vertex}
  */
-Polygon.prototype.getNext = function(v) {
+Polygon.prototype.getNextIntersection = function(v) {
     var c = v;
     while (c._isIntersection) {
         c = c.next;
@@ -102,7 +104,7 @@ Polygon.prototype.getNext = function(v) {
  * Unvisited intersection
  * @return {Vertex}
  */
-Polygon.prototype.getFirstIntersect = function() {
+Polygon.prototype.getFirstIntersection = function() {
     var v = this._firstIntersect || this.first;
 
     do {
@@ -194,12 +196,12 @@ Polygon.prototype.clip = function(clip, sourceForwards, clipForwards) {
         clipVertex = clip.first,
         sourceInClip, clipInSource;
 
-    if(!this.isCounterClockwise()){
-        sourceForwards = !sourceForwards;
-    }
-    if(!clip.isCounterClockwise()){
-        clipForwards = !clipForwards;
-    }
+    // if (!this.isCounterClockwise()) {
+    //     sourceForwards = !sourceForwards;
+    // }
+    // if (!clip.isCounterClockwise()) {
+    //     clipForwards = !clipForwards;
+    // }
 
     // calculate and mark intersections
     do {
@@ -208,44 +210,44 @@ Polygon.prototype.clip = function(clip, sourceForwards, clipForwards) {
                 if (!clipVertex._isIntersection) {
                     var i = new Intersection(
                         sourceVertex,
-                        this.getNext(sourceVertex.next),
-                        clipVertex, clip.getNext(clipVertex.next));
+                        this.getNextIntersection(sourceVertex.next),
+                        clipVertex, clip.getNextIntersection(clipVertex.next));
 
                     // fix for vertices located on edges or other vertices
                     if (i.degenerated()) {
-                        var pertubationLength = 0.000000001; // basic milli -> piko
+                        var perturbationLength = 0.000000001; // basic milli -> piko
 
                         var sourceToPrevX = (sourceVertex.prev.x - sourceVertex.x);
                         var sourceToPrevY = (sourceVertex.prev.y - sourceVertex.y);
                         var sourceToNextX = (sourceVertex.next.x - sourceVertex.x);
                         var sourceToNextY = (sourceVertex.next.y - sourceVertex.y);
                         if(sourceToNextY/sourceToNextX === sourceToPrevY/sourceToPrevX){
-                            var pertubateX = sourceToNextY;
-                            var pertubateY = - sourceToNextX;
+                            var perturbateX = sourceToNextY;
+                            var perturbateY = - sourceToNextX;
                         }else{
-                            var pertubateX = sourceToNextX + sourceToPrevX;
-                            var pertubateY = sourceToNextY + sourceToPrevY;
+                            var perturbateX = sourceToNextX + sourceToPrevX;
+                            var perturbateY = sourceToNextY + sourceToPrevY;
                         }
-                        var length = Math.sqrt(pertubateX * pertubateX + pertubateY * pertubateY);
-                        pertubateX /= length;
-                        pertubateY /= length;
-                        pertubateX *= pertubationLength;
-                        pertubateY *= pertubationLength;
+                        var length = Math.sqrt(perturbateX * perturbateX + perturbateY * perturbateY);
+                        perturbateX /= length;
+                        perturbateY /= length;
+                        perturbateX *= perturbationLength;
+                        perturbateY *= perturbationLength;
 
-                        var perturbedVertex = new Vertex(sourceVertex.x + pertubateX, sourceVertex.y + pertubateY);
+                        var perturbedVertex = new Vertex(sourceVertex.x + perturbateX, sourceVertex.y + perturbateY);
 
                         if(perturbedVertex.isInside(this)){
-                            sourceVertex.x -= pertubateX;
-                            sourceVertex.y -= pertubateY;
+                            sourceVertex.x -= perturbateX;
+                            sourceVertex.y -= perturbateY;
                         }else{
-                            sourceVertex.x += pertubateX;
-                            sourceVertex.y += pertubateY;
+                            sourceVertex.x += perturbateX;
+                            sourceVertex.y += perturbateY;
                         }
 
                         i = new Intersection(
                             sourceVertex,
-                            this.getNext(sourceVertex.next),
-                            clipVertex, clip.getNext(clipVertex.next));
+                            this.getNextIntersection(sourceVertex.next),
+                            clipVertex, clip.getNextIntersection(clipVertex.next));
                     }
 
                     if (i.valid()) {
@@ -260,11 +262,11 @@ Polygon.prototype.clip = function(clip, sourceForwards, clipForwards) {
                         this.insertVertex(
                             sourceIntersection,
                             sourceVertex,
-                            this.getNext(sourceVertex.next));
+                            this.getNextIntersection(sourceVertex.next));
                         clip.insertVertex(
                             clipIntersection,
                             clipVertex,
-                            clip.getNext(clipVertex.next));
+                            clip.getNextIntersection(clipVertex.next));
                     }
                 }
                 clipVertex = clipVertex.next;
@@ -304,7 +306,7 @@ Polygon.prototype.clip = function(clip, sourceForwards, clipForwards) {
     var list = [];
 
     while (this.hasUnprocessed()) {
-        var current = this.getFirstIntersect(),
+        var current = this.getFirstIntersection(),
             // keep format
             clipped = new Polygon([], this._arrayVertices);
 
