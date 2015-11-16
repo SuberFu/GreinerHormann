@@ -57,13 +57,117 @@ describe('Polygon', function() {
       [0,1]
     ])
 
-    var v = new Vertex(2,2)
-    var oldNext = polygon.first.next.next
-    polygon.insertVertex(v, polygon.first.next, polygon.first.next.next)
+    expect(polygon.vertices).to.equal(4)
+
+    var v = Vertex.createIntersection(1, 0.5, 0.5)
+    var oldVertex = polygon.first.next.next
+    polygon.insertVertex(v, polygon.first, polygon.first.next.next)
 
     expect(polygon.vertices).to.equal(5)
     expect(polygon.first.next.next.equals(v)).to.be.true
-    expect(polygon.first.next.next.next.equals(oldNext)).to.be.true
+    expect(polygon.first.next.next.next.equals(oldVertex)).to.be.true
+  })
+
+  it('should insert multiple vertices', function() {
+    var polygon = new Polygon([
+      [0,0],
+      [1,0],
+      [1,1],
+      [0,1]
+    ])
+
+    expect(polygon.vertices).to.equal(4)
+
+    var v1 = Vertex.createIntersection(0, 0.7, 0.3)
+    var v2 = Vertex.createIntersection(0, 0.5, 0.5)
+    var v3 = Vertex.createIntersection(0, 0.1, 0.9)
+    var subsequentVertex = polygon.first
+    var previousVertex = polygon.first.prev
+    polygon.insertVertex(v1, previousVertex, subsequentVertex)
+    polygon.insertVertex(v2, previousVertex, subsequentVertex)
+    polygon.insertVertex(v3, previousVertex, subsequentVertex)
+
+    expect(polygon.vertices).to.equal(7)
+    expect(polygon.first.prev.equals(v3)).to.be.true
+    expect(polygon.first.prev.prev.equals(v2)).to.be.true
+    expect(polygon.first.prev.prev.prev.equals(v1)).to.be.true
+    expect(polygon.first.prev.prev.prev.prev.equals(previousVertex)).to.be.true
+  })
+
+  it('should insert multiple vertices in reversed order', function() {
+    var polygon = new Polygon([
+      [0,0],
+      [1,0],
+      [1,1],
+      [0,1]
+    ])
+
+    expect(polygon.vertices).to.equal(4)
+
+    var v1 = Vertex.createIntersection(0, 0.7, 0.3)
+    var v2 = Vertex.createIntersection(0, 0.5, 0.5)
+    var v3 = Vertex.createIntersection(0, 0.1, 0.9)
+    var subsequentVertex = polygon.first
+    var previousVertex = polygon.first.prev
+    polygon.insertVertex(v3, previousVertex, subsequentVertex)
+    polygon.insertVertex(v2, previousVertex, subsequentVertex)
+    polygon.insertVertex(v1, previousVertex, subsequentVertex)
+
+    expect(polygon.vertices).to.equal(7)
+    expect(polygon.first.prev.equals(v3)).to.be.true
+    expect(polygon.first.prev.prev.equals(v2)).to.be.true
+    expect(polygon.first.prev.prev.prev.equals(v1)).to.be.true
+    expect(polygon.first.prev.prev.prev.prev.equals(previousVertex)).to.be.true
+  })
+
+  it('should give next non-intersection point', function() {
+    var polygon = new Polygon([
+      [0,0],
+      [1,0],
+      [1,1],
+      [0,1]
+    ])
+
+    var v1 = Vertex.createIntersection(0, 0.7, 0.3)
+    var v2 = Vertex.createIntersection(0, 0.5, 0.5)
+    var v3 = Vertex.createIntersection(0, 0.1, 0.9)
+    var subsequentVertex = polygon.first
+    var previousVertex = polygon.first.prev
+    polygon.insertVertex(v3, previousVertex, subsequentVertex)
+    polygon.insertVertex(v2, previousVertex, subsequentVertex)
+    polygon.insertVertex(v1, previousVertex, subsequentVertex)
+
+    expect(polygon.getNext(v1).equals(polygon.first)).to.be.true
+    expect(polygon.getNext(v2).equals(polygon.first)).to.be.true
+    expect(polygon.getNext(v3).equals(polygon.first)).to.be.true
+  })
+
+  it('should give the first unvisited intersection', function() {
+    var polygon = new Polygon([
+      [0,0],
+      [1,0],
+      [1,1],
+      [0,1]
+    ])
+
+    var v1 = Vertex.createIntersection(0, 0.7, 0.3)
+    var v2 = Vertex.createIntersection(0, 0.5, 0.5)
+    var v3 = Vertex.createIntersection(0, 0.1, 0.9)
+    var subsequentVertex = polygon.first
+    var previousVertex = polygon.first.prev
+    polygon.insertVertex(v3, previousVertex, subsequentVertex)
+    polygon.insertVertex(v2, previousVertex, subsequentVertex)
+    polygon.insertVertex(v1, previousVertex, subsequentVertex)
+
+    expect(polygon.getFirstIntersection().equals(v1)).to.be.true
+    v1.visit()
+    expect(polygon.getFirstIntersection().equals(v2)).to.be.true
+    v2.visit()
+    expect(polygon.getFirstIntersection().equals(v3)).to.be.true
+    v3.visit()
+    expect(polygon.getFirstIntersection().equals(polygon.first)).to.be.true
+
 
   })
+
 })

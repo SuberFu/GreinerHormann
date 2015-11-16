@@ -92,7 +92,7 @@ Polygon.prototype.insertVertex = function(vertex, start, end) {
  * @param  {Vertex} v
  * @return {Vertex}
  */
-Polygon.prototype.getNextIntersection = function(v) {
+Polygon.prototype.getNext = function(v) {
     var c = v;
     while (c._isIntersection) {
         c = c.next;
@@ -210,8 +210,8 @@ Polygon.prototype.clip = function(clip, sourceForwards, clipForwards) {
                 if (!clipVertex._isIntersection) {
                     var i = new Intersection(
                         sourceVertex,
-                        this.getNextIntersection(sourceVertex.next),
-                        clipVertex, clip.getNextIntersection(clipVertex.next));
+                        this.getNext(sourceVertex.next),
+                        clipVertex, clip.getNext(clipVertex.next));
 
                     // fix for vertices located on edges or other vertices
                     if (i.degenerated()) {
@@ -246,8 +246,8 @@ Polygon.prototype.clip = function(clip, sourceForwards, clipForwards) {
 
                         i = new Intersection(
                             sourceVertex,
-                            this.getNextIntersection(sourceVertex.next),
-                            clipVertex, clip.getNextIntersection(clipVertex.next));
+                            this.getNext(sourceVertex.next),
+                            clipVertex, clip.getNext(clipVertex.next));
                     }
 
                     if (i.valid()) {
@@ -262,11 +262,11 @@ Polygon.prototype.clip = function(clip, sourceForwards, clipForwards) {
                         this.insertVertex(
                             sourceIntersection,
                             sourceVertex,
-                            this.getNextIntersection(sourceVertex.next));
+                            this.getNext(sourceVertex.next));
                         clip.insertVertex(
                             clipIntersection,
                             clipVertex,
-                            clip.getNextIntersection(clipVertex.next));
+                            clip.getNext(clipVertex.next));
                     }
                 }
                 clipVertex = clipVertex.next;
