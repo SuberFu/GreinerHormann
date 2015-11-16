@@ -1,5 +1,7 @@
 var Vertex = require('./vertex');
 var Intersection = require('./intersection');
+var area = require('area-polygon')
+
 
 /**
  * Polygon representation
@@ -169,14 +171,9 @@ Polygon.prototype.getPoints = function() {
  * @return {Boolean}
  */
 Polygon.prototype.isCounterClockwise = function() {
-    var vertex = this.first;
-    var sum = 0;
-
-    do {
-        sum += (vertex.next.x - vertex.x) * (vertex.next.y + vertex.y);
-    } while (!vertex.equals(this.first));
-
-    return sum <= 0;
+  // calculate signed polygon area
+  // if positive area --> counter clockwise winding
+  return area(this.getPoints(), true) > 0
 };
 
 /**
