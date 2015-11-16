@@ -166,8 +166,33 @@ describe('Polygon', function() {
     expect(polygon.getFirstIntersection().equals(v3)).to.be.true
     v3.visit()
     expect(polygon.getFirstIntersection().equals(polygon.first)).to.be.true
+  })
 
+  it('should know if it has unprocessed vertices', function() {
+    var polygon = new Polygon([
+      [0,0],
+      [1,0],
+      [1,1],
+      [0,1]
+    ])
 
+    expect(polygon.hasUnprocessed()).to.be.false
+
+    var v1 = Vertex.createIntersection(0, 0.7, 0.3)
+    var v2 = Vertex.createIntersection(0, 0.5, 0.5)
+    var v3 = Vertex.createIntersection(0, 0.1, 0.9)
+    var subsequentVertex = polygon.first
+    var previousVertex = polygon.first.prev
+    polygon.insertVertex(v3, previousVertex, subsequentVertex)
+    polygon.insertVertex(v2, previousVertex, subsequentVertex)
+    polygon.insertVertex(v1, previousVertex, subsequentVertex)
+
+    expect(polygon.hasUnprocessed()).to.be.true
+    v1.visit()
+    v2.visit()
+    expect(polygon.hasUnprocessed()).to.be.true
+    v3.visit()
+    expect(polygon.hasUnprocessed()).to.be.false
   })
 
 })
