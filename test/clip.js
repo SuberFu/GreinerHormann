@@ -310,7 +310,7 @@ describe('clip', function() {
     var result = crossing[0].cw.clip(crossing[1].cw, true, true)
 
     expect(result.length).to.equal(1)
-    expect(result[0].length).to.equal(4) // fails because of doubled first and last point
+    expect(result[0].length).to.equal(4)
     expect(result[0]).to.deep.equal([
       [-1,-1],
       [1,-1],
@@ -347,7 +347,7 @@ describe('clip', function() {
     var result = crossing[0].cw.clip(crossing[1].ccw, false, false)
 
     expect(result.length).to.equal(1)
-    expect(result[0].length).to.equal(12) // fails because of doubled first and last point
+    expect(result[0].length).to.equal(12)
     expect(false).to.be.true    // TODO: write expected result
     // expect(result[0]).to.deep.equal([
     //   [-1,-1],
@@ -361,8 +361,7 @@ describe('clip', function() {
     //   [2,-1],
     //   [1,-1],
     //   [1,-2],
-    //   [-1,-2],
-    //   [-1,-1]
+    //   [-1,-2]
     // ])
 
   })
@@ -371,23 +370,21 @@ describe('clip', function() {
     var result = crossing[0].ccw.clip(crossing[1].cw, false, false)
 
     expect(result.length).to.equal(1)
-    expect(result[0].length).to.equal(12) // fails because of doubled first and last point
-    expect(false).to.be.true    // TODO: write expected result
-    // expect(result[0]).to.deep.equal([
-    //   [-1,-1],
-    //   [-2,-1],
-    //   [-2,1],
-    //   [-1,1],
-    //   [-1,2],
-    //   [1,2],
-    //   [1,1],
-    //   [2,1],
-    //   [2,-1],
-    //   [1,-1],
-    //   [1,-2],
-    //   [-1,-2],
-    //   [-1,-1]
-    // ])
+    expect(result[0].length).to.equal(12)
+    expect(result[0]).to.deep.equal([
+      [-1,1],
+      [-2,1],
+      [-2,-1],
+      [-1,-1],
+      [-1,-2],
+      [1,-2],
+      [1,-1],
+      [2,-1],
+      [2,1],
+      [1,1],
+      [1,2],
+      [-1,2]
+    ])
 
   })
 
@@ -395,23 +392,21 @@ describe('clip', function() {
     var result = crossing[0].ccw.clip(crossing[1].ccw, false, false)
 
     expect(result.length).to.equal(1)
-    expect(result[0].length).to.equal(12) // fails because of doubled first and last point
-    expect(false).to.be.true    // TODO: write expected result
-    // expect(result[0]).to.deep.equal([
-    //   [-1,-1],
-    //   [-2,-1],
-    //   [-2,1],
-    //   [-1,1],
-    //   [-1,2],
-    //   [1,2],
-    //   [1,1],
-    //   [2,1],
-    //   [2,-1],
-    //   [1,-1],
-    //   [1,-2],
-    //   [-1,-2],
-    //   [-1,-1]
-    // ])
+    expect(result[0].length).to.equal(12)
+    expect(result[0]).to.deep.equal([
+      [-1,1],
+      [-2,1],
+      [-2,-1],
+      [-1,-1],
+      [-1,-2],
+      [1,-2],
+      [1,-1],
+      [2,-1],
+      [2,1],
+      [1,1],
+      [1,2],
+      [-1,2]
+    ])
 
   })
 
