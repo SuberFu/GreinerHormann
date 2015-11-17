@@ -509,4 +509,166 @@ describe('clip', function() {
 
 
 
+  it('should diff two crossing polygons - cw first clip cw second', function() {
+    var result = crossing[0].cw.clip(crossing[1].cw, false, true)
+
+    expect(result.length).to.equal(2)
+    expect(result[0].length).to.equal(4)
+    expect(result[0]).to.deep.equal([
+      [-1,-1],
+      [-2,-1],
+      [-2,1],
+      [-1,1],
+    ])
+    expect(result[1].length).to.equal(4)
+    expect(result[1]).to.deep.equal([
+      [1,-1],
+      [2,-1],
+      [2,1],
+      [1,1]
+    ])
+  })
+
+  it('should diff two crossing polygons - cw first clip ccw second', function() {
+    var result = crossing[0].cw.clip(crossing[1].ccw, false, true)
+
+    expect(result.length).to.equal(2)
+    expect(result[0].length).to.equal(4)
+    expect(result[0]).to.deep.equal([
+      [-1,-1],
+      [-2,-1],
+      [-2,1],
+      [-1,1],
+    ])
+    expect(result[1].length).to.equal(4)
+    expect(result[1]).to.deep.equal([
+      [1,-1],
+      [2,-1],
+      [2,1],
+      [1,1]
+    ])
+  })
+
+  it('should diff two crossing polygons - ccw first clip cw second', function() {
+    var result = crossing[0].ccw.clip(crossing[1].cw, false, true)
+
+    expect(result.length).to.equal(2)
+    expect(result[0].length).to.equal(4)
+    expect(result[0]).to.deep.equal([
+      [-1,1],
+      [-2,1],
+      [-2,-1],
+      [-1,-1]
+    ])
+    expect(result[1].length).to.equal(4)
+    expect(result[1]).to.deep.equal([
+      [1,1],
+      [2,1],
+      [2,-1],
+      [1,-1]
+    ])
+  })
+
+  it('should diff two crossing polygons - ccw first clip ccw second', function() {
+    var result = crossing[0].ccw.clip(crossing[1].ccw, false, true)
+
+    expect(result.length).to.equal(2)
+    expect(result[0].length).to.equal(4)
+    expect(result[0]).to.deep.equal([
+      [-1,1],
+      [-2,1],
+      [-2,-1],
+      [-1,-1]
+    ])
+    expect(result[1].length).to.equal(4)
+    expect(result[1]).to.deep.equal([
+      [1,1],
+      [2,1],
+      [2,-1],
+      [1,-1]
+    ])
+  })
+
+
+  it('should diff two crossing polygons - cw second clip cw first', function() {
+    var result = crossing[1].cw.clip(crossing[0].cw, false, true)
+
+    expect(result.length).to.equal(2)
+    expect(result[0].length).to.equal(4)
+    expect(result[0]).to.deep.equal([
+      [1,-1],
+      [1,-2],
+      [-1,-2],
+      [-1,-1]
+    ])
+    expect(result[1].length).to.equal(4)
+    expect(result[1]).to.deep.equal([
+      [1,1],
+      [1,2],
+      [-1,2],
+      [-1,1]
+    ])
+  })
+
+  it('should diff two crossing polygons - cw second clip ccw first', function() {
+    var result = crossing[1].cw.clip(crossing[0].ccw, false, true)
+
+    expect(result.length).to.equal(2)
+    expect(result[0].length).to.equal(4)
+    expect(result[0]).to.deep.equal([
+      [1,-1],
+      [1,-2],
+      [-1,-2],
+      [-1,-1]
+    ])
+    expect(result[1].length).to.equal(4)
+    expect(result[1]).to.deep.equal([
+      [1,1],
+      [1,2],
+      [-1,2],
+      [-1,1]
+    ])
+  })
+
+  it('should diff two crossing polygons - ccw second clip cw first', function() {
+    var result = crossing[1].ccw.clip(crossing[0].cw, false, true)
+
+    expect(result.length).to.equal(2)
+    expect(result[0].length).to.equal(4)
+    expect(result[0]).to.deep.equal([
+      [1,-1],
+      [1,-2],
+      [-1,-2],
+      [-1,-1]
+    ])
+    expect(result[1].length).to.equal(4)
+    expect(result[1]).to.deep.equal([
+      [1,1],
+      [1,2],
+      [-1,2],
+      [-1,1]
+    ])
+  })
+
+  it('should diff two crossing polygons - ccw second clip ccw first', function() {
+    var result = crossing[1].ccw.clip(crossing[0].ccw, false, true)
+
+    expect(result.length).to.equal(2)
+    expect(result[0].length).to.equal(4)
+    expect(result[0]).to.deep.equal([
+      [1,-1],
+      [1,-2],
+      [-1,-2],
+      [-1,-1]
+    ])
+    expect(result[1].length).to.equal(4)
+    expect(result[1]).to.deep.equal([
+      [1,1],
+      [1,2],
+      [-1,2],
+      [-1,1]
+    ])
+  })
+
+
 })
