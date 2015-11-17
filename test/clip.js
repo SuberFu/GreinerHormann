@@ -304,6 +304,64 @@ describe('clip', function() {
   })
 
 
+
+  it('should diff two inherent polygons - cw in clip cw out', function() {
+      var result = inherent.in.cw.clip(inherent.out.cw, false, true)
+
+      expect(result.length).to.equal(0)
+  })
+
+  it('should diff two inherent polygons - cw in clip ccw out', function() {
+      var result = inherent.in.cw.clip(inherent.out.ccw, false, true)
+
+      expect(result.length).to.equal(0)
+  })
+
+  it('should diff two inherent polygons - ccw in clip cw out', function() {
+      var result = inherent.in.ccw.clip(inherent.out.cw, false, true)
+
+      expect(result.length).to.equal(0)
+  })
+
+  it('should diff two inherent polygons - ccw in clip ccw out', function() {
+      var result = inherent.in.ccw.clip(inherent.out.ccw, false, true)
+
+      expect(result.length).to.equal(0)
+  })
+
+
+
+  it('should diff two inherent polygons - cw out clip cw in', function() {
+      var result = inherent.out.cw.clip(inherent.in.cw, false, true)
+
+      expect(result.length).to.equal(1)
+      expect(result[0]).to.deep.equal(inherent.in.cw.getPoints())
+  })
+
+  it('should diff two inherent polygons - cw out clip ccw in', function() {
+      var result = inherent.out.cw.clip(inherent.in.ccw, false, true)
+
+      expect(result.length).to.equal(1)
+      expect(result[0]).to.deep.equal(inherent.in.ccw.getPoints())
+  })
+
+  it('should diff two inherent polygons - ccw out clip cw in', function() {
+      var result = inherent.out.ccw.clip(inherent.in.cw, false, true)
+
+      expect(result.length).to.equal(1)
+      expect(result[0]).to.deep.equal(inherent.in.cw.getPoints())
+  })
+
+  it('should diff two inherent polygons - ccw out clip ccw in', function() {
+      var result = inherent.out.ccw.clip(inherent.in.ccw, false, true)
+
+      expect(result.length).to.equal(1)
+      expect(result[0]).to.deep.equal(inherent.in.ccw.getPoints())
+  })
+
+
+
+
   // ==== CROSSING ====
 
   it('should intersect two crossing polygons - cw, cw', function() {
@@ -316,6 +374,45 @@ describe('clip', function() {
       [1,-1],
       [1,1],
       [-1,1]
+    ])
+  })
+
+  it('should intersect two crossing polygons - cw, ccw', function() {
+    var result = crossing[0].cw.clip(crossing[1].ccw, true, true)
+
+    expect(result.length).to.equal(1)
+    expect(result[0].length).to.equal(4)
+    expect(result[0]).to.deep.equal([
+      [-1,-1],
+      [1,-1],
+      [1,1],
+      [-1,1]
+    ])
+  })
+
+  it('should intersect two crossing polygons - ccw, cw', function() {
+    var result = crossing[0].ccw.clip(crossing[1].cw, true, true)
+
+    expect(result.length).to.equal(1)
+    expect(result[0].length).to.equal(4)
+    expect(result[0]).to.deep.equal([
+      [-1,1],
+      [1,1],
+      [1,-1],
+      [-1,-1]
+    ])
+  })
+
+  it('should intersect two crossing polygons - ccw, ccw', function() {
+    var result = crossing[0].ccw.clip(crossing[1].ccw, true, true)
+
+    expect(result.length).to.equal(1)
+    expect(result[0].length).to.equal(4)
+    expect(result[0]).to.deep.equal([
+      [-1,1],
+      [1,1],
+      [1,-1],
+      [-1,-1]
     ])
   })
 
