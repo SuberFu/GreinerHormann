@@ -321,9 +321,11 @@ Polygon.prototype.clip = function(clip, sourceForwards, clipForwards) {
     }
     else {
       // remove doubled last element
-      if (list[0][0][0] == list[0][list[0].length - 1][0] &&
-        list[0][0][1] == list[0][list[0].length - 1][1]) {
-        list[0].splice(-1, 1);
+      for (var i=0; i < list.length; i++) {
+        if (list[i][0][0] == list[i][list[i].length - 1][0] &&
+          list[i][0][1] == list[i][list[i].length - 1][1]) {
+          list[i].splice(-1, 1);
+        }
       }
     }
 
