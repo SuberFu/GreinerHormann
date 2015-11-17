@@ -319,8 +319,14 @@ Polygon.prototype.clip = function(clip, sourceForwards, clipForwards) {
             list = null;
         }
     }
+    else {
+      // remove doubled last element
+      if (list[0][0][0] == list[0][list[0].length - 1][0] &&
+        list[0][0][1] == list[0][list[0].length - 1][1]) {
+        list[0].splice(-1, 1);
+      }
+    }
 
-    // TODO: we assume closed polygons -- do not double first and last point
     return list;
 };
 
