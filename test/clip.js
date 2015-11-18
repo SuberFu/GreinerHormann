@@ -310,19 +310,19 @@ describe('clip', function() {
           )
         }
 
-        it('should union two polygons cw cw', function() {
+        it('should union two polygons cw cw into source', function() {
           union('cw', 'cw')
         })
 
-        it('should union two polygons cw ccw', function() {
+        it('should union two polygons cw ccw into source', function() {
           union('cw', 'ccw')
         })
 
-        it('should union two polygons ccw cw', function() {
+        it('should union two polygons ccw cw into source', function() {
           union('ccw', 'cw')
         })
 
-        it('should union two polygons ccw ccw', function() {
+        it('should union two polygons ccw ccw into source', function() {
           union('ccw', 'ccw')
         })
 
