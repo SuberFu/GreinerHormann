@@ -292,6 +292,9 @@ Polygon.prototype.buildListOfPolygons = function () {
  * @param {Boolean} clipForwards
  */
 Polygon.prototype.clip = function(clip, sourceForwards, clipForwards) {
+    var intersection = sourceForwards && clipForwards
+    var union = !sourceForwards && !clipForwards
+    var diff = !sourceForwards && clipForwards
 
     // if (!this.isCounterClockwise()) {
     //     sourceForwards = !sourceForwards;
@@ -299,6 +302,9 @@ Polygon.prototype.clip = function(clip, sourceForwards, clipForwards) {
     // if (!clip.isCounterClockwise()) {
     //     clipForwards = !clipForwards;
     // }
+    if (!intersection && !union && !diff) {
+      throw new Error('this clipping directions are not permitted')
+    }
 
     // calculate and mark intersections
     this.findIntersections(clip)
@@ -316,23 +322,60 @@ Polygon.prototype.clip = function(clip, sourceForwards, clipForwards) {
     // phase three - construct a list of clipped polygons
     var list = this.buildListOfPolygons()
 
-
-
-
     if (list.length === 0) {
-        if (sourceInClip) {
-            list.push(this.getPoints());
+
+      // when no polygons are found
+      // the inherent relation of source and clip
+      // and the performed operation (union | diff | intersect)
+      // indicate if source, clip or empty list is the expected return value
+
+      if (sourceInClip) {
+        if (union) {
+          list.push(clip.getPoints())
         }
-        if (clipInSource) {
-            list.push(clip.getPoints());
+
+        if (intersection) {
+          list.push(this.getPoints())
         }
-        if (list.length === 0) {
-            list = null;
+
+        // on diff
+        // list stays empty
+
+      }
+
+      else if (clipInSource) {
+        if (union) {
+          list.push(this.getPoints())
         }
+
+        if (intersection) {
+          list.push(clip.getPoints())
+        }
+
+        if (diff) {
+          // # TODO: discuss how to handle holes
+          throw new Error('diffing holes not supported yet')
+        }
+      }
+
+      // source and clip are disjoint
+      else {
+        if (union) {
+          list.push(this.getPoints())
+          list.push(clip.getPoints())
+        }
+
+        // on intersection
+        // list stays empty
+
+        if (diff) {
+          list.push(this.getPoints())
+        }
+      }
     }
+
+    // remove doubled last element
     else {
-      // remove doubled last element
-      for (var i=0; i < list.length; i++) {
       for (var i = 0; i < list.length; i++) {
         if (list[i][0][0] == list[i][list[i].length - 1][0] &&
           list[i][0][1] == list[i][list[i].length - 1][1]) {
