@@ -106,260 +106,336 @@ describe('clip', function() {
 
   // ==== DISJOINT ====
 
-  it('should find no intersection between two disjoint polygons - cw, cw', function() {
-    var result = disjoint[0].cw.clip(disjoint[1].cw, true, true)
+  describe('#disjoint', function() {
 
-    expect(result).to.be.null
-  })
+    // === INTERSECTION ===
 
-  it('should find no intersection between two disjoint polygons - cw, ccw', function() {
-    var result = disjoint[0].cw.clip(disjoint[1].ccw, true, true)
+    describe('#intersection', function() {
 
-    expect(result).to.be.null
-  })
+      it('should find no intersection between two disjoint polygons - cw, cw', function() {
+        var result = disjoint[0].cw.clip(disjoint[1].cw, true, true)
 
-  it('should find no intersection between two disjoint polygons - ccw, cw', function() {
-    var result = disjoint[0].ccw.clip(disjoint[1].cw, true, true)
+        expect(result).to.be.empty
+      })
 
-    expect(result).to.be.null
-  })
+      it('should find no intersection between two disjoint polygons - cw, ccw', function() {
+        var result = disjoint[0].cw.clip(disjoint[1].ccw, true, true)
 
-  it('should find no intersection between two disjoint polygons - ccw, ccw', function() {
-    var result = disjoint[0].ccw.clip(disjoint[1].ccw, true, true)
+        expect(result).to.be.empty
+      })
 
-    expect(result).to.be.null
-  })
+      it('should find no intersection between two disjoint polygons - ccw, cw', function() {
+        var result = disjoint[0].ccw.clip(disjoint[1].cw, true, true)
 
+        expect(result).to.be.empty
+      })
 
+      it('should find no intersection between two disjoint polygons - ccw, ccw', function() {
+        var result = disjoint[0].ccw.clip(disjoint[1].ccw, true, true)
 
-  it('should find no union of two disjoint polygons - cw, cw', function() {
-    var result = disjoint[0].cw.clip(disjoint[1].cw, false, false)
+        expect(result).to.be.empty
+      })
 
-    expect(result).to.be.null
-  })
+    })
 
-  it('should find no union of two disjoint polygons - cw, ccw', function() {
-    var result = disjoint[0].cw.clip(disjoint[1].ccw, false, false)
+    // === UNION ===
 
-    expect(result).to.be.null
-  })
+    describe('#union', function() {
 
-  it('should find no union of two disjoint polygons - ccw, cw', function() {
-    var result = disjoint[0].ccw.clip(disjoint[1].cw, false, false)
+      it('should find union of two disjoint polygons - cw, cw', function() {
+        var result = disjoint[0].cw.clip(disjoint[1].cw, false, false)
 
-    expect(result).to.be.null
-  })
+        expect(result.length).to.equal(2)
+        expect(result[0]).to.deep.equal(disjoint[0].cw.getPoints())
+        expect(result[1]).to.deep.equal(disjoint[1].cw.getPoints())
+      })
 
-  it('should find no union of two disjoint polygons - ccw, ccw', function() {
-    var result = disjoint[0].ccw.clip(disjoint[1].ccw, false, false)
+      it('should find union of two disjoint polygons - cw, ccw', function() {
+        var result = disjoint[0].cw.clip(disjoint[1].ccw, false, false)
 
-    expect(result).to.be.null
-  })
+        expect(result.length).to.equal(2)
+        expect(result[0]).to.deep.equal(disjoint[0].cw.getPoints())
+        expect(result[1]).to.deep.equal(disjoint[1].ccw.getPoints())
+      })
 
+      it('should find union of two disjoint polygons - ccw, cw', function() {
+        var result = disjoint[0].ccw.clip(disjoint[1].cw, false, false)
 
+        expect(result.length).to.equal(2)
+        expect(result[0]).to.deep.equal(disjoint[0].ccw.getPoints())
+        expect(result[1]).to.deep.equal(disjoint[1].cw.getPoints())
+      })
 
-  it('should diff two disjoint polygons - cw, cw', function() {
-    var result = disjoint[0].cw.clip(disjoint[1].cw, false, true)
+      it('should find union of two disjoint polygons - ccw, ccw', function() {
+        var result = disjoint[0].ccw.clip(disjoint[1].ccw, false, false)
 
-    expect(result).to.not.be.null
-  })
+        expect(result.length).to.equal(2)
+        expect(result[0]).to.deep.equal(disjoint[0].ccw.getPoints())
+        expect(result[1]).to.deep.equal(disjoint[1].ccw.getPoints())
+      })
 
-  it('should diff two disjoint polygons - cw, ccw', function() {
-    var result = disjoint[0].cw.clip(disjoint[1].ccw, false, true)
+    })
 
-    expect(result).to.not.be.null
-  })
+    // === DIFF ===
 
-  it('should diff two disjoint polygons - ccw, cw', function() {
-    var result = disjoint[0].ccw.clip(disjoint[1].cw, false, true)
+    describe('#diff', function() {
 
-    expect(result).to.not.be.null
-  })
+      it('should diff two disjoint polygons - cw, cw', function() {
+        var result = disjoint[0].cw.clip(disjoint[1].cw, false, true)
 
-  it('should diff two disjoint polygons - ccw, ccw', function() {
-    var result = disjoint[0].ccw.clip(disjoint[1].ccw, false, true)
+        expect(result.length).to.equal(1)
+        expect(result[0]).to.deep.equal(disjoint[0].cw.getPoints())
+      })
 
-    expect(result).to.not.be.null
+      it('should diff two disjoint polygons - cw, ccw', function() {
+        var result = disjoint[0].cw.clip(disjoint[1].ccw, false, true)
+
+        expect(result.length).to.equal(1)
+        expect(result[0]).to.deep.equal(disjoint[0].cw.getPoints())
+      })
+
+      it('should diff two disjoint polygons - ccw, cw', function() {
+        var result = disjoint[0].ccw.clip(disjoint[1].cw, false, true)
+
+        expect(result.length).to.equal(1)
+        expect(result[0]).to.deep.equal(disjoint[0].ccw.getPoints())
+      })
+
+      it('should diff two disjoint polygons - ccw, ccw', function() {
+        var result = disjoint[0].ccw.clip(disjoint[1].ccw, false, true)
+
+        expect(result.length).to.equal(1)
+        expect(result[0]).to.deep.equal(disjoint[0].ccw.getPoints())
+      })
+
+    })
+
   })
 
 
   // ==== INHERENT ====
 
-  it('should intersect two inherent polygons - cw out clip cw in', function() {
-    var result = inherent.out.cw.clip(inherent.in.cw, true, true)
+  describe('#inherent', function() {
 
-    expect(result.length).to.equal(1)
-    expect(result[0]).to.deep.equal(inherent.in.cw.getPoints())
+    // === INTERSECTION ===
+
+    describe('#intersection', function() {
+
+      // == SOURCE CONTAINS CLIP ==
+
+      describe('#source-contains-clip', function() {
+
+        function intersect(outerWinding, innerWinding) {
+          var result = inherent.out[outerWinding].clip(
+            inherent.in[innerWinding],
+            true,
+            true
+          )
+
+          expect(result.length).to.equal(1)
+          expect(result[0]).to.deep.equal(inherent.in[innerWinding].getPoints())
+        }
+
+        it('should intersect cw cw', function() {
+          intersect('cw', 'cw')
+        })
+
+        it('should intersect cw ccw', function() {
+          intersect('cw', 'ccw')
+        })
+
+        it('should intersect ccw cw', function() {
+          intersect('ccw', 'cw')
+        })
+
+        it('should intersect ccw ccw', function() {
+          intersect('ccw', 'ccw')
+        })
+
+      })
+
+      // == CLIP CONTAINS SOURCE
+
+      describe('#clip-contains-source', function() {
+
+        function intersect(innerWinding, outerWinding) {
+          var result = inherent.in[innerWinding].clip(
+            inherent.out[outerWinding],
+            true,
+            true
+          )
+
+          expect(result.length).to.equal(1)
+          expect(result[0]).to.deep.equal(inherent.in[innerWinding].getPoints())
+        }
+
+        it('should intersect cw cw', function() {
+          intersect('cw', 'cw')
+        })
+
+        it('should intersect cw ccw', function() {
+          intersect('cw', 'ccw')
+        })
+
+        it('should intersect ccw cw', function() {
+          intersect('ccw', 'cw')
+        })
+
+        it('should intersect ccw ccw', function() {
+          intersect('ccw', 'ccw')
+        })
+
+      })
+
+    })
+
+    // === UNION ===
+
+    describe('#union', function() {
+
+      // == SOURCE CONTAINS CLIP ==
+
+      describe('#source-contains-clip', function() {
+
+        function union(outerWinding, innerWinding) {
+          var result = inherent.out[outerWinding].clip(
+            inherent.in[innerWinding],
+            false,
+            false
+          )
+
+          expect(result.length).to.equal(1)
+          expect(result[0]).to.deep.equal(
+            inherent.out[outerWinding].getPoints()
+          )
+        }
+
+        it('should union two polygons cw cw', function() {
+          union('cw', 'cw')
+        })
+
+        it('should union two polygons cw ccw', function() {
+          union('cw', 'ccw')
+        })
+
+        it('should union two polygons ccw cw', function() {
+          union('ccw', 'cw')
+        })
+
+        it('should union two polygons ccw ccw', function() {
+          union('ccw', 'ccw')
+        })
+
+      })
+
+      // == CLIP CONTAINS SOURCE ==
+
+      describe('#clip-contains-source', function() {
+
+        function union(innerWinding, outerWinding) {
+          var result = inherent.in[innerWinding].clip(
+            inherent.out[outerWinding],
+            false,
+            false
+          )
+
+          expect(result.length).to.equal(1)
+          expect(result[0]).to.deep.equal(
+            inherent.out[outerWinding].getPoints()
+          )
+        }
+
+        it('should union two polygons cw cw', function() {
+          union('cw', 'cw')
+        })
+
+        it('should union two polygons cw ccw', function() {
+          union('cw', 'ccw')
+        })
+
+        it('should union two polygons ccw cw', function() {
+          union('ccw', 'cw')
+        })
+
+        it('should union two polygons ccw ccw', function() {
+          union('ccw', 'ccw')
+        })
+
+      })
+    })
+
+    // === DIFF ===
+
+    describe('#diff', function() {
+
+      // == SOURCE CONTAINS CLIP ==
+
+      describe('#source-contains-clip', function() {
+
+        function diff(outerWinding, innerWinding) {
+          var result = inherent.out[outerWinding].clip(
+            inherent.in[innerWinding],
+            false,
+            true
+          )
+
+          expect(result.length).to.equal(1)
+          expect(false).to.be.true // TODO: holes are not detected
+          // expect(result[0]).to.deep.equal(inherent.in.cw.getPoints())
+        }
+
+        it('should diff two polygons cw cw', function() {
+          diff('cw', 'cw')
+        })
+
+        it('should diff two polygons cw ccw', function() {
+          diff('cw', 'ccw')
+        })
+
+        it('should diff two polygons ccw cw', function() {
+          diff('ccw', 'cw')
+        })
+
+        it('should diff two polygons ccw ccw', function() {
+          diff('ccw', 'ccw')
+        })
+
+      })
+
+      // == CLIP CONTAINS SOURCE ==
+
+      describe('#clip-contains-source', function() {
+
+        function diff(innerWinding, outerWinding) {
+          var result = inherent.in[innerWinding].clip(
+            inherent.out[outerWinding],
+            false,
+            true
+          )
+
+          expect(result).to.be.empty
+        }
+
+        it('should diff two polygons cw cw', function() {
+          diff('cw', 'cw')
+        })
+
+        it('should diff two polygons cw ccw', function() {
+          diff('cw', 'ccw')
+        })
+
+        it('should diff two polygons ccw cw', function() {
+          diff('ccw', 'cw')
+        })
+
+        it('should diff two polygons ccw ccw', function() {
+          diff('ccw', 'ccw')
+        })
+
+      })
+
+    })
   })
-
-  it('should intersect two inherent polygons - cw out clip ccw in', function() {
-    var result = inherent.out.cw.clip(inherent.in.ccw, true, true)
-
-    expect(result.length).to.equal(1)
-    expect(result[0]).to.deep.equal(inherent.in.ccw.getPoints())
-  })
-
-  it('should intersect two inherent polygons - ccw out clip cw in', function() {
-    var result = inherent.out.ccw.clip(inherent.in.cw, true, true)
-
-    expect(result.length).to.equal(1)
-    expect(result[0]).to.deep.equal(inherent.in.cw.getPoints())
-  })
-
-  it('should intersect two inherent polygons - ccw out clip ccw in', function() {
-    var result = inherent.out.ccw.clip(inherent.in.ccw, true, true)
-
-    expect(result.length).to.equal(1)
-    expect(result[0]).to.deep.equal(inherent.in.ccw.getPoints())
-  })
-
-
-
-  it('should intersect two inherent polygons - cw in clip cw out', function() {
-    var result = inherent.in.cw.clip(inherent.out.cw, true, true)
-
-    expect(result.length).to.equal(1)
-    expect(result[0]).to.deep.equal(inherent.in.cw.getPoints())
-  })
-
-  it('should intersect two inherent polygons - cc in clip ccw out', function() {
-    var result = inherent.in.cw.clip(inherent.out.ccw, true, true)
-
-    expect(result.length).to.equal(1)
-    expect(result[0]).to.deep.equal(inherent.in.cw.getPoints())
-  })
-
-  it('should intersect two inherent polygons - ccw in clip cw out', function() {
-    var result = inherent.in.ccw.clip(inherent.out.cw, true, true)
-
-    expect(result.length).to.equal(1)
-    expect(result[0]).to.deep.equal(inherent.in.ccw.getPoints())
-  })
-
-  it('should intersect two inherent polygons - ccw in clip ccw out', function() {
-    var result = inherent.in.ccw.clip(inherent.out.ccw, true, true)
-
-    expect(result.length).to.equal(1)
-    expect(result[0]).to.deep.equal(inherent.in.ccw.getPoints())
-  })
-
-
-
-  it('should union two inherent polygons - cw out clip cw in', function() {
-    var result = inherent.out.cw.clip(inherent.in.cw, false, false)
-
-    expect(result.length).to.equal(1)
-    expect(result[0]).to.deep.equal(inherent.out.cw.getPoints())
-  })
-
-  it('should union two inherent polygons - cw out clip ccw in', function() {
-    var result = inherent.out.cw.clip(inherent.in.ccw, false, false)
-
-    expect(result.length).to.equal(1)
-    expect(result[0]).to.deep.equal(inherent.out.cw.getPoints())
-  })
-
-  it('should union two inherent polygons - ccw out clip cw in', function() {
-    var result = inherent.out.ccw.clip(inherent.in.cw, false, false)
-
-    expect(result.length).to.equal(1)
-    expect(result[0]).to.deep.equal(inherent.out.ccw.getPoints())
-  })
-
-  it('should union two inherent polygons - ccw out clip ccw in', function() {
-    var result = inherent.out.ccw.clip(inherent.in.ccw, false, false)
-
-    expect(result.length).to.equal(1)
-    expect(result[0]).to.deep.equal(inherent.out.ccw.getPoints())
-  })
-
-
-
-  it('should union two inherent polygons - cw in clip cw out', function() {
-    var result = inherent.in.cw.clip(inherent.out.cw, false, false)
-
-    expect(result.length).to.equal(1)
-    expect(result[0]).to.deep.equal(inherent.out.cw.getPoints())
-  })
-
-  it('should union two inherent polygons - cw in clip ccw out', function() {
-    var result = inherent.in.cw.clip(inherent.out.ccw, false, false)
-
-    expect(result.length).to.equal(1)
-    expect(result[0]).to.deep.equal(inherent.out.ccw.getPoints())
-  })
-
-  it('should union two inherent polygons - ccw in clip cw out', function() {
-    var result = inherent.in.ccw.clip(inherent.out.cw, false, false)
-
-    expect(result.length).to.equal(1)
-    expect(result[0]).to.deep.equal(inherent.out.cw.getPoints())
-  })
-
-  it('should union two inherent polygons - ccw in clip ccw out', function() {
-    var result = inherent.in.ccw.clip(inherent.out.ccw, false, false)
-
-    expect(result.length).to.equal(1)
-    expect(result[0]).to.deep.equal(inherent.out.ccw.getPoints())
-  })
-
-
-
-  it('should diff two inherent polygons - cw in clip cw out', function() {
-      var result = inherent.in.cw.clip(inherent.out.cw, false, true)
-
-      expect(result.length).to.equal(0)
-  })
-
-  it('should diff two inherent polygons - cw in clip ccw out', function() {
-      var result = inherent.in.cw.clip(inherent.out.ccw, false, true)
-
-      expect(result.length).to.equal(0)
-  })
-
-  it('should diff two inherent polygons - ccw in clip cw out', function() {
-      var result = inherent.in.ccw.clip(inherent.out.cw, false, true)
-
-      expect(result.length).to.equal(0)
-  })
-
-  it('should diff two inherent polygons - ccw in clip ccw out', function() {
-      var result = inherent.in.ccw.clip(inherent.out.ccw, false, true)
-
-      expect(result.length).to.equal(0)
-  })
-
-
-
-  it('should diff two inherent polygons - cw out clip cw in', function() {
-      var result = inherent.out.cw.clip(inherent.in.cw, false, true)
-
-      expect(result.length).to.equal(1)
-      expect(result[0]).to.deep.equal(inherent.in.cw.getPoints())
-  })
-
-  it('should diff two inherent polygons - cw out clip ccw in', function() {
-      var result = inherent.out.cw.clip(inherent.in.ccw, false, true)
-
-      expect(result.length).to.equal(1)
-      expect(result[0]).to.deep.equal(inherent.in.ccw.getPoints())
-  })
-
-  it('should diff two inherent polygons - ccw out clip cw in', function() {
-      var result = inherent.out.ccw.clip(inherent.in.cw, false, true)
-
-      expect(result.length).to.equal(1)
-      expect(result[0]).to.deep.equal(inherent.in.cw.getPoints())
-  })
-
-  it('should diff two inherent polygons - ccw out clip ccw in', function() {
-      var result = inherent.out.ccw.clip(inherent.in.ccw, false, true)
-
-      expect(result.length).to.equal(1)
-      expect(result[0]).to.deep.equal(inherent.in.ccw.getPoints())
-  })
-
-
 
 
   // ==== CROSSING ====
