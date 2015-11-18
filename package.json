@@ -4,7 +4,7 @@
   "description": "Greiner-Hormann clipping algorithm",
   "main": "src/greiner-hormann.js",
   "scripts": {
-    "test": "node node_modules/.bin/mocha",
+    "test": "node_modules/.bin/mocha -R spec",
     "watch": "watchify test/js/test.js -o test/js/bundle.js -dv",
     "start": "npm run watch & serve",
     "sources": "browserify -s greinerHormann src/greiner-hormann.js > dist/greiner-hormann.js"
