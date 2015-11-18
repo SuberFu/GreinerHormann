@@ -226,6 +226,59 @@ Polygon.prototype.findIntersections = function(clip) {
   } while (!sourceVertex.equals(this.first));
 }
 
+Polygon.prototype.labelEntriesAndExits = function(clip, sourceForwards, clipForwards) {
+  var sourceVertex = this.first;
+  var clipVertex = clip.first;
+
+  do {
+      if (sourceVertex._isIntersection) {
+          sourceVertex._isEntry = sourceForwards;
+          sourceForwards = !sourceForwards;
+      }
+      sourceVertex = sourceVertex.next;
+  } while (!sourceVertex.equals(this.first));
+
+  do {
+      if (clipVertex._isIntersection) {
+          clipVertex._isEntry = clipForwards;
+          clipForwards = !clipForwards;
+      }
+      clipVertex = clipVertex.next;
+  } while (!clipVertex.equals(clip.first));
+}
+
+Polygon.prototype.buildListOfPolygons = function () {
+  var list = [];
+
+  while (this.hasUnprocessed()) {
+      var current = this.getFirstIntersection(),
+          // keep format
+          clipped = new Polygon([], this._arrayVertices);
+
+      clipped.addVertex(new Vertex(current.x, current.y));
+      do {
+          current.visit();
+          if (current._isEntry) {
+              do {
+                  current = current.next;
+                  clipped.addVertex(new Vertex(current.x, current.y));
+              } while (!current._isIntersection);
+
+          } else {
+              do {
+                  current = current.prev;
+                  clipped.addVertex(new Vertex(current.x, current.y));
+              } while (!current._isIntersection);
+          }
+          current = current._corresponding;
+      } while (!current._visited);
+
+      list.push(clipped.getPoints());
+  }
+
+  return list;
+};
+
 /**
  * Clip polygon against another one.
  * Result depends on algorithm direction:
@@ -239,9 +292,6 @@ Polygon.prototype.findIntersections = function(clip) {
  * @param {Boolean} clipForwards
  */
 Polygon.prototype.clip = function(clip, sourceForwards, clipForwards) {
-    var sourceVertex = this.first,
-        clipVertex = clip.first,
-        sourceInClip, clipInSource;
 
     // if (!this.isCounterClockwise()) {
     //     sourceForwards = !sourceForwards;
@@ -254,59 +304,20 @@ Polygon.prototype.clip = function(clip, sourceForwards, clipForwards) {
     this.findIntersections(clip)
 
     // phase two - identify entry/exit points
-    sourceVertex = this.first;
-    clipVertex = clip.first;
+    var sourceInClip = this.first.isInside(clip);
+    var clipInSource = clip.first.isInside(this);
 
-    sourceInClip = sourceVertex.isInside(clip);
-    clipInSource = clipVertex.isInside(this);
-
+    // TODO: explain why
     sourceForwards ^= sourceInClip;
     clipForwards ^= clipInSource;
 
-    do {
-        if (sourceVertex._isIntersection) {
-            sourceVertex._isEntry = sourceForwards;
-            sourceForwards = !sourceForwards;
-        }
-        sourceVertex = sourceVertex.next;
-    } while (!sourceVertex.equals(this.first));
-
-    do {
-        if (clipVertex._isIntersection) {
-            clipVertex._isEntry = clipForwards;
-            clipForwards = !clipForwards;
-        }
-        clipVertex = clipVertex.next;
-    } while (!clipVertex.equals(clip.first));
+    this.labelEntriesAndExits(clip, sourceForwards, clipForwards)
 
     // phase three - construct a list of clipped polygons
-    var list = [];
+    var list = this.buildListOfPolygons()
 
-    while (this.hasUnprocessed()) {
-        var current = this.getFirstIntersection(),
-            // keep format
-            clipped = new Polygon([], this._arrayVertices);
 
-        clipped.addVertex(new Vertex(current.x, current.y));
-        do {
-            current.visit();
-            if (current._isEntry) {
-                do {
-                    current = current.next;
-                    clipped.addVertex(new Vertex(current.x, current.y));
-                } while (!current._isIntersection);
 
-            } else {
-                do {
-                    current = current.prev;
-                    clipped.addVertex(new Vertex(current.x, current.y));
-                } while (!current._isIntersection);
-            }
-            current = current._corresponding;
-        } while (!current._visited);
-
-        list.push(clipped.getPoints());
-    }
 
     if (list.length === 0) {
         if (sourceInClip) {
@@ -322,6 +333,7 @@ Polygon.prototype.clip = function(clip, sourceForwards, clipForwards) {
     else {
       // remove doubled last element
       for (var i=0; i < list.length; i++) {
+      for (var i = 0; i < list.length; i++) {
         if (list[i][0][0] == list[i][list[i].length - 1][0] &&
           list[i][0][1] == list[i][list[i].length - 1][1]) {
           list[i].splice(-1, 1);
