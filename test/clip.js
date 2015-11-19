@@ -176,24 +176,20 @@ describe('clip', function() {
         )
 
         expect(resultAB.length).to.equal(2)
-        expect(resultAB[0]).to.deep.equal({
-          shape: disjoint[0][windingA].getPoints(),
-          holes: []
-        })
-        expect(resultAB[1]).to.deep.equal({
-          shape: disjoint[1][windingB].getPoints(),
-          holes: []
-        })
+        expect(resultAB[0]).to.deep.equal(
+          wrapIntoObject(disjoint[0][windingA].getPoints())
+        )
+        expect(resultAB[1]).to.deep.equal(
+          wrapIntoObject(disjoint[1][windingB].getPoints())
+        )
 
         expect(resultBA.length).to.equal(2)
-        expect(resultBA[0]).to.deep.equal({
-          shape: disjoint[1][windingB].getPoints(),
-          holes: []
-        })
-        expect(resultBA[1]).to.deep.equal({
-          shape: disjoint[0][windingA].getPoints(),
-          holes: []
-        })
+        expect(resultBA[0]).to.deep.equal(
+          wrapIntoObject(disjoint[1][windingB].getPoints())
+        )
+        expect(resultBA[1]).to.deep.equal(
+          wrapIntoObject(disjoint[0][windingA].getPoints())
+        )
       }
 
       it('should find union of two disjoint polygons - cw, cw', function() {
@@ -232,16 +228,14 @@ describe('clip', function() {
         )
 
         expect(resultAB.length).to.equal(1)
-        expect(resultAB[0]).to.deep.equal({
-          shape: disjoint[0][windingA].getPoints(),
-          holes: []
-        })
+        expect(resultAB[0]).to.deep.equal(
+          wrapIntoObject(disjoint[0][windingA].getPoints())
+        )
 
         expect(resultBA.length).to.equal(1)
-        expect(resultBA[0]).to.deep.equal({
-          shape: disjoint[1][windingB].getPoints(),
-          holes: []
-        })
+        expect(resultBA[0]).to.deep.equal(
+          wrapIntoObject(disjoint[1][windingB].getPoints())
+        )
       }
 
       it('should diff two disjoint polygons - cw, cw', function() {
