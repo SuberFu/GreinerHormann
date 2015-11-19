@@ -2,6 +2,17 @@ var chai = require('chai')
 var expect = chai.expect
 var Polygon = require('../src/polygon')
 
+function wrapIntoObject(shape, holes) {
+  if (undefined === holes) {
+    holes = []
+  }
+
+  return {
+    shape: shape,
+    holes: holes
+  }
+}
+
 
 describe('clip', function() {
 
@@ -112,28 +123,37 @@ describe('clip', function() {
 
     describe('#intersection', function() {
 
-      it('should find no intersection between two disjoint polygons - cw, cw', function() {
-        var result = disjoint[0].cw.clip(disjoint[1].cw, true, true)
+      function intersect(windingA, windingB) {
+        var resultAB = disjoint[0][windingA].clip(
+          disjoint[1][windingB],
+          true,
+          true
+        )
 
-        expect(result).to.be.empty
+        var resultBA = disjoint[1][windingB].clip(
+          disjoint[0][windingA],
+          true,
+          true
+        )
+
+        expect(resultAB).to.be.empty
+        expect(resultBA).to.be.empty
+      }
+
+      it('should find no intersection between two disjoint polygons - cw, cw', function() {
+        intersect('cw', 'cw')
       })
 
       it('should find no intersection between two disjoint polygons - cw, ccw', function() {
-        var result = disjoint[0].cw.clip(disjoint[1].ccw, true, true)
-
-        expect(result).to.be.empty
+        intersect('cw', 'ccw')
       })
 
       it('should find no intersection between two disjoint polygons - ccw, cw', function() {
-        var result = disjoint[0].ccw.clip(disjoint[1].cw, true, true)
-
-        expect(result).to.be.empty
+        intersect('ccw', 'cw')
       })
 
       it('should find no intersection between two disjoint polygons - ccw, ccw', function() {
-        var result = disjoint[0].ccw.clip(disjoint[1].ccw, true, true)
-
-        expect(result).to.be.empty
+        intersect('ccw', 'ccw')
       })
 
     })
@@ -142,36 +162,50 @@ describe('clip', function() {
 
     describe('#union', function() {
 
-      it('should find union of two disjoint polygons - cw, cw', function() {
-        var result = disjoint[0].cw.clip(disjoint[1].cw, false, false)
+      function union(windingA, windingB) {
+        var resultAB = disjoint[0][windingA].clip(
+          disjoint[1][windingB],
+          false,
+          false
+        )
 
-        expect(result.length).to.equal(2)
-        expect(result[0]).to.deep.equal(disjoint[0].cw.getPoints())
-        expect(result[1]).to.deep.equal(disjoint[1].cw.getPoints())
+        var resultBA = disjoint[1][windingB].clip(
+          disjoint[0][windingA],
+          false,
+          false
+        )
+
+        expect(resultAB.length).to.equal(2)
+        expect(resultAB[0]).to.deep.equal(
+          wrapIntoObject(disjoint[0][windingA].getPoints())
+        )
+        expect(resultAB[1]).to.deep.equal(
+          wrapIntoObject(disjoint[1][windingB].getPoints())
+        )
+
+        expect(resultBA.length).to.equal(2)
+        expect(resultBA[0]).to.deep.equal(
+          wrapIntoObject(disjoint[1][windingB].getPoints())
+        )
+        expect(resultBA[1]).to.deep.equal(
+          wrapIntoObject(disjoint[0][windingA].getPoints())
+        )
+      }
+
+      it('should find union of two disjoint polygons - cw, cw', function() {
+        union('cw', 'cw')
       })
 
       it('should find union of two disjoint polygons - cw, ccw', function() {
-        var result = disjoint[0].cw.clip(disjoint[1].ccw, false, false)
-
-        expect(result.length).to.equal(2)
-        expect(result[0]).to.deep.equal(disjoint[0].cw.getPoints())
-        expect(result[1]).to.deep.equal(disjoint[1].ccw.getPoints())
+        union('cw', 'ccw')
       })
 
       it('should find union of two disjoint polygons - ccw, cw', function() {
-        var result = disjoint[0].ccw.clip(disjoint[1].cw, false, false)
-
-        expect(result.length).to.equal(2)
-        expect(result[0]).to.deep.equal(disjoint[0].ccw.getPoints())
-        expect(result[1]).to.deep.equal(disjoint[1].cw.getPoints())
+        union('ccw', 'cw')
       })
 
       it('should find union of two disjoint polygons - ccw, ccw', function() {
-        var result = disjoint[0].ccw.clip(disjoint[1].ccw, false, false)
-
-        expect(result.length).to.equal(2)
-        expect(result[0]).to.deep.equal(disjoint[0].ccw.getPoints())
-        expect(result[1]).to.deep.equal(disjoint[1].ccw.getPoints())
+        union('ccw', 'ccw')
       })
 
     })
@@ -180,32 +214,44 @@ describe('clip', function() {
 
     describe('#diff', function() {
 
-      it('should diff two disjoint polygons - cw, cw', function() {
-        var result = disjoint[0].cw.clip(disjoint[1].cw, false, true)
+      function diff(windingA, windingB) {
+        var resultAB = disjoint[0][windingA].clip(
+          disjoint[1][windingB],
+          false,
+          true
+        )
 
-        expect(result.length).to.equal(1)
-        expect(result[0]).to.deep.equal(disjoint[0].cw.getPoints())
+        var resultBA = disjoint[1][windingB].clip(
+          disjoint[0][windingA],
+          false,
+          true
+        )
+
+        expect(resultAB.length).to.equal(1)
+        expect(resultAB[0]).to.deep.equal(
+          wrapIntoObject(disjoint[0][windingA].getPoints())
+        )
+
+        expect(resultBA.length).to.equal(1)
+        expect(resultBA[0]).to.deep.equal(
+          wrapIntoObject(disjoint[1][windingB].getPoints())
+        )
+      }
+
+      it('should diff two disjoint polygons - cw, cw', function() {
+        diff('cw', 'cw')
       })
 
       it('should diff two disjoint polygons - cw, ccw', function() {
-        var result = disjoint[0].cw.clip(disjoint[1].ccw, false, true)
-
-        expect(result.length).to.equal(1)
-        expect(result[0]).to.deep.equal(disjoint[0].cw.getPoints())
+        diff('cw', 'ccw')
       })
 
       it('should diff two disjoint polygons - ccw, cw', function() {
-        var result = disjoint[0].ccw.clip(disjoint[1].cw, false, true)
-
-        expect(result.length).to.equal(1)
-        expect(result[0]).to.deep.equal(disjoint[0].ccw.getPoints())
+        diff('ccw', 'cw')
       })
 
       it('should diff two disjoint polygons - ccw, ccw', function() {
-        var result = disjoint[0].ccw.clip(disjoint[1].ccw, false, true)
-
-        expect(result.length).to.equal(1)
-        expect(result[0]).to.deep.equal(disjoint[0].ccw.getPoints())
+        diff('ccw', 'ccw')
       })
 
     })
@@ -233,7 +279,9 @@ describe('clip', function() {
           )
 
           expect(result.length).to.equal(1)
-          expect(result[0]).to.deep.equal(inherent.in[innerWinding].getPoints())
+          expect(result[0]).to.deep.equal(
+            wrapIntoObject(inherent.in[innerWinding].getPoints())
+          )
         }
 
         it('should intersect cw cw', function() {
@@ -266,7 +314,9 @@ describe('clip', function() {
           )
 
           expect(result.length).to.equal(1)
-          expect(result[0]).to.deep.equal(inherent.in[innerWinding].getPoints())
+          expect(result[0]).to.deep.equal(
+            wrapIntoObject(inherent.in[innerWinding].getPoints())
+          )
         }
 
         it('should intersect cw cw', function() {
@@ -306,23 +356,23 @@ describe('clip', function() {
 
           expect(result.length).to.equal(1)
           expect(result[0]).to.deep.equal(
-            inherent.out[outerWinding].getPoints()
+            wrapIntoObject(inherent.out[outerWinding].getPoints())
           )
         }
 
-        it('should union two polygons cw cw', function() {
+        it('should union two polygons cw cw into source', function() {
           union('cw', 'cw')
         })
 
-        it('should union two polygons cw ccw', function() {
+        it('should union two polygons cw ccw into source', function() {
           union('cw', 'ccw')
         })
 
-        it('should union two polygons ccw cw', function() {
+        it('should union two polygons ccw cw into source', function() {
           union('ccw', 'cw')
         })
 
-        it('should union two polygons ccw ccw', function() {
+        it('should union two polygons ccw ccw into source', function() {
           union('ccw', 'ccw')
         })
 
@@ -341,7 +391,7 @@ describe('clip', function() {
 
           expect(result.length).to.equal(1)
           expect(result[0]).to.deep.equal(
-            inherent.out[outerWinding].getPoints()
+            wrapIntoObject(inherent.out[outerWinding].getPoints())
           )
         }
 
@@ -380,8 +430,12 @@ describe('clip', function() {
           )
 
           expect(result.length).to.equal(1)
-          expect(false).to.be.true // TODO: holes are not detected
-          // expect(result[0]).to.deep.equal(inherent.in.cw.getPoints())
+          expect(result[0]).to.deep.equal(
+            wrapIntoObject(
+              inherent.out[outerWinding].getPoints(),
+              [inherent.in[innerWinding].getPoints()]
+            )
+          )
         }
 
         it('should diff two polygons cw cw', function() {

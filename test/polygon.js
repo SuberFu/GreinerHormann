@@ -260,4 +260,22 @@ describe('Polygon', function() {
     expect(polygonArray.isCounterClockwise()).to.be.false
     expect(polygonObject.isCounterClockwise()).to.be.false
   })
+
+  it('should throw error on wrong directions for clipping', function() {
+    var fn = function() {
+      var pointsArray = [
+        [0,0],
+        [0,1],
+        [1,1],
+        [1,0],
+      ]
+
+      var p1 = new Polygon(pointsArray)
+      var p2 = new Polygon(pointsArray)
+
+      p1.clip(p2, true, false)
+    }
+
+    expect(fn).to.throw(Error)
+  })
 })

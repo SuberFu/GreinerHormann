@@ -226,24 +226,28 @@ Polygon.prototype.findIntersections = function(clip) {
   } while (!sourceVertex.equals(this.first));
 }
 
-Polygon.prototype.labelEntriesAndExits = function(clip, sourceForwards, clipForwards) {
+Polygon.prototype.labelEntriesAndExits = function(
+  clip,
+  sourceForwards,
+  clipForwards
+) {
   var sourceVertex = this.first;
   var clipVertex = clip.first;
 
   do {
-      if (sourceVertex._isIntersection) {
-          sourceVertex._isEntry = sourceForwards;
-          sourceForwards = !sourceForwards;
-      }
-      sourceVertex = sourceVertex.next;
+    if (sourceVertex._isIntersection) {
+        sourceVertex._isEntry = sourceForwards;
+        sourceForwards = !sourceForwards;
+    }
+    sourceVertex = sourceVertex.next;
   } while (!sourceVertex.equals(this.first));
 
   do {
-      if (clipVertex._isIntersection) {
-          clipVertex._isEntry = clipForwards;
-          clipForwards = !clipForwards;
-      }
-      clipVertex = clipVertex.next;
+    if (clipVertex._isIntersection) {
+        clipVertex._isEntry = clipForwards;
+        clipForwards = !clipForwards;
+    }
+    clipVertex = clipVertex.next;
   } while (!clipVertex.equals(clip.first));
 }
 
@@ -279,6 +283,17 @@ Polygon.prototype.buildListOfPolygons = function () {
   return list;
 };
 
+wrapIntoObject = function (listOfPoints, holes) {
+  if (undefined === holes) {
+    holes = []
+  }
+
+  return {
+    shape: listOfPoints,
+    holes: holes
+  }
+};
+
 /**
  * Clip polygon against another one.
  * Result depends on algorithm direction:
@@ -292,6 +307,9 @@ Polygon.prototype.buildListOfPolygons = function () {
  * @param {Boolean} clipForwards
  */
 Polygon.prototype.clip = function(clip, sourceForwards, clipForwards) {
+    var intersection = sourceForwards && clipForwards
+    var union = !sourceForwards && !clipForwards
+    var diff = !sourceForwards && clipForwards
 
     // if (!this.isCounterClockwise()) {
     //     sourceForwards = !sourceForwards;
@@ -299,6 +317,9 @@ Polygon.prototype.clip = function(clip, sourceForwards, clipForwards) {
     // if (!clip.isCounterClockwise()) {
     //     clipForwards = !clipForwards;
     // }
+    if (!intersection && !union && !diff) {
+      throw new Error('this clipping directions are not permitted')
+    }
 
     // calculate and mark intersections
     this.findIntersections(clip)
@@ -316,23 +337,59 @@ Polygon.prototype.clip = function(clip, sourceForwards, clipForwards) {
     // phase three - construct a list of clipped polygons
     var list = this.buildListOfPolygons()
 
-
-
-
     if (list.length === 0) {
-        if (sourceInClip) {
-            list.push(this.getPoints());
+
+      // when no polygons are found
+      // the inherent relation of source and clip
+      // and the performed operation (union | diff | intersect)
+      // indicate if source, clip or empty list is the expected return value
+
+      if (sourceInClip) {
+        if (union) {
+          list.push(wrapIntoObject(clip.getPoints()))
         }
-        if (clipInSource) {
-            list.push(clip.getPoints());
+
+        if (intersection) {
+          list.push(wrapIntoObject(this.getPoints()))
         }
-        if (list.length === 0) {
-            list = null;
+
+        // on diff
+        // list stays empty
+      }
+
+      else if (clipInSource) {
+        if (union) {
+          list.push(wrapIntoObject(this.getPoints()))
         }
+
+        if (intersection) {
+          list.push(wrapIntoObject(clip.getPoints()))
+        }
+
+        if (diff) {
+          list.push(wrapIntoObject(this.getPoints(), [clip.getPoints()]))
+        }
+      }
+
+      // source and clip are disjoint
+      else {
+        if (union) {
+          list.push(wrapIntoObject(this.getPoints()))
+          list.push(wrapIntoObject(clip.getPoints()))
+        }
+
+        // on intersection
+        // list stays empty
+
+        if (diff) {
+          list.push(wrapIntoObject(this.getPoints()))
+        }
+      }
+
     }
+
+    // remove doubled last element
     else {
-      // remove doubled last element
-      for (var i=0; i < list.length; i++) {
       for (var i = 0; i < list.length; i++) {
         if (list[i][0][0] == list[i][list[i].length - 1][0] &&
           list[i][0][1] == list[i][list[i].length - 1][1]) {

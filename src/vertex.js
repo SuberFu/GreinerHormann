@@ -57,6 +57,8 @@ var Vertex = function(x, y) {
      * Entry/exit point in another polygon
      * @type {Boolean}
      */
+    // initially for the labelling phase
+    // each vertex is marked as entry
     this._isEntry = true;
 
     /**
