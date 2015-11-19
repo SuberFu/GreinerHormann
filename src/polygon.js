@@ -190,7 +190,7 @@ Polygon.prototype.findIntersections = function(clip) {
               clipVertex, clip.getNext(clipVertex.next));
 
           // test if both edges really intersect
-          if (intersection.valid()) {
+          if (intersection.isValid()) {
             // create intersection vertices
             var sourceIntersection = Vertex.createIntersection(
               intersection.x,
