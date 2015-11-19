@@ -226,24 +226,28 @@ Polygon.prototype.findIntersections = function(clip) {
   } while (!sourceVertex.equals(this.first));
 }
 
-Polygon.prototype.labelEntriesAndExits = function(clip, sourceForwards, clipForwards) {
+Polygon.prototype.labelEntriesAndExits = function(
+  clip,
+  sourceForwards,
+  clipForwards
+) {
   var sourceVertex = this.first;
   var clipVertex = clip.first;
 
   do {
-      if (sourceVertex._isIntersection) {
-          sourceVertex._isEntry = sourceForwards;
-          sourceForwards = !sourceForwards;
-      }
-      sourceVertex = sourceVertex.next;
+    if (sourceVertex._isIntersection) {
+        sourceVertex._isEntry = sourceForwards;
+        sourceForwards = !sourceForwards;
+    }
+    sourceVertex = sourceVertex.next;
   } while (!sourceVertex.equals(this.first));
 
   do {
-      if (clipVertex._isIntersection) {
-          clipVertex._isEntry = clipForwards;
-          clipForwards = !clipForwards;
-      }
-      clipVertex = clipVertex.next;
+    if (clipVertex._isIntersection) {
+        clipVertex._isEntry = clipForwards;
+        clipForwards = !clipForwards;
+    }
+    clipVertex = clipVertex.next;
   } while (!clipVertex.equals(clip.first));
 }
 
@@ -277,6 +281,17 @@ Polygon.prototype.buildListOfPolygons = function () {
   }
 
   return list;
+};
+
+wrapIntoObject = function (listOfPoints, holes) {
+  if (undefined === holes) {
+    holes = []
+  }
+
+  return {
+    shape: listOfPoints,
+    holes: holes
+  }
 };
 
 /**
@@ -331,47 +346,46 @@ Polygon.prototype.clip = function(clip, sourceForwards, clipForwards) {
 
       if (sourceInClip) {
         if (union) {
-          list.push(clip.getPoints())
+          list.push(wrapIntoObject(clip.getPoints()))
         }
 
         if (intersection) {
-          list.push(this.getPoints())
+          list.push(wrapIntoObject(this.getPoints()))
         }
 
         // on diff
         // list stays empty
-
       }
 
       else if (clipInSource) {
         if (union) {
-          list.push(this.getPoints())
+          list.push(wrapIntoObject(this.getPoints()))
         }
 
         if (intersection) {
-          list.push(clip.getPoints())
+          list.push(wrapIntoObject(clip.getPoints()))
         }
 
         if (diff) {
-          // # TODO: discuss how to handle holes
-          throw new Error('diffing holes not supported yet')
+          list.push(wrapIntoObject(this.getPoints(), [clip.getPoints()]))
         }
       }
 
       // source and clip are disjoint
       else {
         if (union) {
-          list.push(this.getPoints())
-          list.push(clip.getPoints())
+          list.push(wrapIntoObject(this.getPoints()))
+          list.push(wrapIntoObject(clip.getPoints()))
         }
 
         // on intersection
         // list stays empty
 
         if (diff) {
-          list.push(this.getPoints())
+          list.push(wrapIntoObject(this.getPoints()))
         }
       }
+
     }
 
     // remove doubled last element
