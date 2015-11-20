@@ -39,7 +39,48 @@ describe('Degeneracies Clipping', function() {
         false
       )
 
-      expect(true).to.be.false
+      expect(result.length).to.equal(1)
+      expect(result[0].shape.length).to.equal(4)
+      expect(result[0].shape).to.deep.equal([
+        [-2, -1],
+        [2, -1],
+        [2, 1],
+        [-2, 1]
+      ])
+    })
+
+    it('should diff overlapping polygons', function() {
+      var result = overlapping[0].clip(
+        overlapping[1],
+        false,
+        true
+      )
+
+      expect(result.length).to.equal(1)
+      expect(result[0].shape.length).to.equal(4)
+      expect(result[0].shape).to.deep.equal([
+        [-2, -1],
+        [-1, -1],
+        [-1, 1],
+        [-2, 1]
+      ])
+    })
+
+    it('should intersect overlapping polygons', function() {
+      var result = overlapping[0].clip(
+        overlapping[1],
+        true,
+        true
+      )
+
+      expect(result.length).to.equal(1)
+      expect(result[0].shape.length).to.equal(4)
+      expect(result[0].shape).to.deep.equal([
+        [-1, -1],
+        [1, -1],
+        [1, 1],
+        [-1, 1]
+      ])
     })
 
   })
