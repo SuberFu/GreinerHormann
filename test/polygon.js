@@ -278,4 +278,23 @@ describe('Polygon', function() {
 
     expect(fn).to.throw(Error)
   })
+
+  it('should reverse a cw polygon', function() {
+    var polygon = new Polygon([
+      [0,0],
+      [0,1],
+      [1,1],
+      [1,0]
+    ])
+
+    polygon.reverse()
+
+    expect(polygon.getPoints()).to.deep.equal([
+      [0,0],
+      [1,0],
+      [1,1],
+      [0,1]
+    ])
+  })
+
 })

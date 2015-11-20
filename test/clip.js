@@ -86,30 +86,30 @@ describe('clip', function() {
     crossing[0] = {
       cw: new Polygon([
         [-2,-1],
-        [2,-1],
-        [2,1],
-        [-2,1]
-      ]),
-      ccw: new Polygon([
-        [-2,-1],
         [-2,1],
         [2,1],
         [2,-1]
+      ]),
+      ccw: new Polygon([
+        [-2,-1],
+        [2,-1],
+        [2,1],
+        [-2,1]
       ])
     }
 
     crossing[1] = {
       cw: new Polygon([
         [-1,-2],
-        [1,-2],
+        [-1,2],
         [1,2],
-        [-1,2]
+        [1,-2]
       ]),
       ccw: new Polygon([
         [-1,-2],
-        [-1,2],
         [1,-2],
-        [1,-2]
+        [1,2],
+        [-1,2]
       ])
     }
   })
@@ -526,10 +526,10 @@ describe('clip', function() {
     expect(result.length).to.equal(1)
     expect(result[0].length).to.equal(4)
     expect(result[0]).to.deep.equal([
-      [-1,1],
-      [1,1],
+      [-1,-1],
       [1,-1],
-      [-1,-1]
+      [1,1],
+      [-1,1]
     ])
   })
 
@@ -539,10 +539,10 @@ describe('clip', function() {
     expect(result.length).to.equal(1)
     expect(result[0].length).to.equal(4)
     expect(result[0]).to.deep.equal([
-      [-1,1],
-      [1,1],
+      [-1,-1],
       [1,-1],
-      [-1,-1]
+      [1,1],
+      [-1,1]
     ])
   })
 
@@ -575,22 +575,20 @@ describe('clip', function() {
 
     expect(result.length).to.equal(1)
     expect(result[0].length).to.equal(12)
-    expect(false).to.be.true    // TODO: write expected result
-    // expect(result[0]).to.deep.equal([
-    //   [-1,-1],
-    //   [-2,-1],
-    //   [-2,1],
-    //   [-1,1],
-    //   [-1,2],
-    //   [1,2],
-    //   [1,1],
-    //   [2,1],
-    //   [2,-1],
-    //   [1,-1],
-    //   [1,-2],
-    //   [-1,-2]
-    // ])
-
+    expect(result[0]).to.deep.equal([
+      [-1,-1],
+      [-2,-1],
+      [-2,1],
+      [-1,1],
+      [-1,2],
+      [1,2],
+      [1,1],
+      [2,1],
+      [2,-1],
+      [1,-1],
+      [1,-2],
+      [-1,-2]
+    ])
   })
 
   it('should union two crossing polygons - ccw, cw', function() {
@@ -599,18 +597,18 @@ describe('clip', function() {
     expect(result.length).to.equal(1)
     expect(result[0].length).to.equal(12)
     expect(result[0]).to.deep.equal([
-      [-1,1],
-      [-2,1],
-      [-2,-1],
       [-1,-1],
-      [-1,-2],
-      [1,-2],
-      [1,-1],
-      [2,-1],
-      [2,1],
-      [1,1],
+      [-2,-1],
+      [-2,1],
+      [-1,1],
+      [-1,2],
       [1,2],
-      [-1,2]
+      [1,1],
+      [2,1],
+      [2,-1],
+      [1,-1],
+      [1,-2],
+      [-1,-2],
     ])
 
   })
@@ -621,18 +619,18 @@ describe('clip', function() {
     expect(result.length).to.equal(1)
     expect(result[0].length).to.equal(12)
     expect(result[0]).to.deep.equal([
-      [-1,1],
-      [-2,1],
-      [-2,-1],
       [-1,-1],
-      [-1,-2],
-      [1,-2],
-      [1,-1],
-      [2,-1],
-      [2,1],
-      [1,1],
+      [-2,-1],
+      [-2,1],
+      [-1,1],
+      [-1,2],
       [1,2],
-      [-1,2]
+      [1,1],
+      [2,1],
+      [2,-1],
+      [1,-1],
+      [1,-2],
+      [-1,-2]
     ])
 
   })
@@ -668,7 +666,7 @@ describe('clip', function() {
       [-1,-1],
       [-2,-1],
       [-2,1],
-      [-1,1],
+      [-1,1]
     ])
     expect(result[1].length).to.equal(4)
     expect(result[1]).to.deep.equal([
@@ -685,17 +683,17 @@ describe('clip', function() {
     expect(result.length).to.equal(2)
     expect(result[0].length).to.equal(4)
     expect(result[0]).to.deep.equal([
-      [-1,1],
-      [-2,1],
+      [-1,-1],
       [-2,-1],
-      [-1,-1]
+      [-2,1],
+      [-1,1]
     ])
     expect(result[1].length).to.equal(4)
     expect(result[1]).to.deep.equal([
-      [1,1],
-      [2,1],
+      [1,-1],
       [2,-1],
-      [1,-1]
+      [2,1],
+      [1,1]
     ])
   })
 
@@ -705,17 +703,17 @@ describe('clip', function() {
     expect(result.length).to.equal(2)
     expect(result[0].length).to.equal(4)
     expect(result[0]).to.deep.equal([
-      [-1,1],
-      [-2,1],
+      [-1,-1],
       [-2,-1],
-      [-1,-1]
+      [-2,1],
+      [-1,1]
     ])
     expect(result[1].length).to.equal(4)
     expect(result[1]).to.deep.equal([
-      [1,1],
-      [2,1],
+      [1,-1],
       [2,-1],
-      [1,-1]
+      [2,1],
+      [1,1]
     ])
   })
 
