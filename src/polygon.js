@@ -294,7 +294,6 @@ wrapIntoObject = function (listOfPoints, holes) {
   }
 };
 
-
 Polygon.prototype.reverse = function() {
   var vertex = this.first
   do {
@@ -306,6 +305,64 @@ Polygon.prototype.reverse = function() {
   } while (vertex != this.first)
 }
 
+Polygon.prototype.handleEdgeCases = function(list,
+                                             clip,
+                                             sourceInClip,
+                                             clipInSource,
+                                             union,
+                                             diff,
+                                             intersection) {
+  if (list.length !== 0) {
+    return
+  }
+
+  // when no polygons are found
+  // the inherent relation of source and clip
+  // and the performed operation (union | diff | intersect)
+  // indicate if source, clip or empty list is the expected return value
+
+  if (sourceInClip) {
+    if (union) {
+      list.push(wrapIntoObject(clip.getPoints()))
+    }
+
+    if (intersection) {
+      list.push(wrapIntoObject(this.getPoints()))
+    }
+
+    // on diff
+    // list stays empty
+  }
+
+  else if (clipInSource) {
+    if (union) {
+      list.push(wrapIntoObject(this.getPoints()))
+    }
+
+    if (intersection) {
+      list.push(wrapIntoObject(clip.getPoints()))
+    }
+
+    if (diff) {
+      list.push(wrapIntoObject(this.getPoints(), [clip.getPoints()]))
+    }
+  }
+
+  // source and clip are disjoint
+  else {
+    if (union) {
+      list.push(wrapIntoObject(this.getPoints()))
+      list.push(wrapIntoObject(clip.getPoints()))
+    }
+
+    // on intersection
+    // list stays empty
+
+    if (diff) {
+      list.push(wrapIntoObject(this.getPoints()))
+    }
+  }
+}
 
 /**
  * Clip polygon against another one.
@@ -324,6 +381,8 @@ Polygon.prototype.clip = function(clip, sourceForwards, clipForwards) {
     var union = !sourceForwards && !clipForwards
     var diff = !sourceForwards && clipForwards
 
+    // clockwise-winded polygons will be reversed to counter-clockwise
+    // polygons
     if (!this.isCounterClockwise()) {
         this.reverse()
     }
@@ -350,68 +409,24 @@ Polygon.prototype.clip = function(clip, sourceForwards, clipForwards) {
 
     // phase three - construct a list of clipped polygons
     var list = this.buildListOfPolygons()
-
-    if (list.length === 0) {
-
-      // when no polygons are found
-      // the inherent relation of source and clip
-      // and the performed operation (union | diff | intersect)
-      // indicate if source, clip or empty list is the expected return value
-
-      if (sourceInClip) {
-        if (union) {
-          list.push(wrapIntoObject(clip.getPoints()))
-        }
-
-        if (intersection) {
-          list.push(wrapIntoObject(this.getPoints()))
-        }
-
-        // on diff
-        // list stays empty
-      }
-
-      else if (clipInSource) {
-        if (union) {
-          list.push(wrapIntoObject(this.getPoints()))
-        }
-
-        if (intersection) {
-          list.push(wrapIntoObject(clip.getPoints()))
-        }
-
-        if (diff) {
-          list.push(wrapIntoObject(this.getPoints(), [clip.getPoints()]))
-        }
-      }
-
-      // source and clip are disjoint
-      else {
-        if (union) {
-          list.push(wrapIntoObject(this.getPoints()))
-          list.push(wrapIntoObject(clip.getPoints()))
-        }
-
-        // on intersection
-        // list stays empty
-
-        if (diff) {
-          list.push(wrapIntoObject(this.getPoints()))
-        }
-      }
-
-    }
+    this.handleEdgeCases(
+      list,
+      clip,
+      sourceInClip,
+      clipInSource,
+      union,
+      diff,
+      intersection
+    )
 
     // remove doubled last element
-    else {
-      for (var i = 0; i < list.length; i++) {
-        var shape = list[i].shape
-        var first = shape[0]
-        var last = shape[shape.length -1]
+    for (var i = 0; i < list.length; i++) {
+      var shape = list[i].shape
+      var first = shape[0]
+      var last = shape[shape.length -1]
 
-        if (first[0] == last[0] && first[1] == last[1]) {
-          shape.splice(-1, 1)
-        }
+      if (first[0] == last[0] && first[1] == last[1]) {
+        shape.splice(-1, 1)
       }
     }
 
