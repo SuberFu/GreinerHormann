@@ -8,6 +8,8 @@ describe('Degeneracies Clipping', function() {
 
   var overlapping = []
   var equal = { small: null, big: null}
+  var onPoint = { bigbase: null, smallbase: null,
+    topTriangle: null, bottomTriangle: null}
 
   beforeEach(function() {
 
@@ -39,6 +41,32 @@ describe('Degeneracies Clipping', function() {
         [-1, 1]
       ])
     ]
+
+    onPoint.bigbase = new Polygon([
+      [0,0],
+      [4,0],
+      [4,4],
+      [0,4]
+    ])
+
+    onPoint.smallbase = new Polygon([
+      [0,0],
+      [4,0],
+      [4,1],
+      [0,1]
+    ])
+
+    onPoint.topTriangle = new Polygon([
+      [2,0],
+      [3,2],
+      [1,2]
+    ])
+
+    onPoint.topTriangle = new Polygon([
+      [2,0],
+      [1,-1],
+      [3,-1]
+    ])
   })
 
 
@@ -46,31 +74,31 @@ describe('Degeneracies Clipping', function() {
     it('should detect the smaller polygon as intersection - big clip small', function() {
       var result = equal.big.clip(equal.small, true, true)
       expect(result.length).to.equal(1)
-      expect(result[1].shape).to.deep.equal(equal.small.getPoints())
+      expect(result[0].shape).to.deep.equal(equal.small.getPoints())
     })
 
     it('should detect the smaller polygon as intersection - small clip big', function() {
       var result = equal.small.clip(equal.big, true, true)
       expect(result.length).to.equal(1)
-      expect(result[1].shape).to.deep.equal(equal.small.getPoints())
+      expect(result[0].shape).to.deep.equal(equal.small.getPoints())
     })
 
     it('should return the bigger polygon as the union result - big clip small', function() {
       var result = equal.big.clip(equal.small, false, false)
       expect(result.length).to.equal(1)
-      expect(result[1].shape).to.deep.equal(equal.big.getPoints())
+      expect(result[0].shape).to.deep.equal(equal.big.getPoints())
     })
 
     it('should return the bigger polygon as the union result - small clip big', function() {
       var result = equal.small.clip(equal.big, false, false)
       expect(result.length).to.equal(1)
-      expect(result[1].shape).to.deep.equal(equal.big.getPoints())
+      expect(result[0].shape).to.deep.equal(equal.big.getPoints())
     })
 
     it('should diff the smaller polygon from the bigger one', function() {
       var result = equal.big.clip(equal.small, false, true)
       expect(result.length).to.equal(1)
-      expect(result[1].shape).to.deep.equal([
+      expect(result[0].shape).to.deep.equal([
         [0,0],
         [1,0],
         [1,1],
