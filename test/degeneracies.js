@@ -62,7 +62,7 @@ describe('Degeneracies Clipping', function() {
       [1,2]
     ])
 
-    onPoint.topTriangle = new Polygon([
+    onPoint.bottomTriangle = new Polygon([
       [2,0],
       [1,-1],
       [3,-1]
@@ -170,7 +170,201 @@ describe('Degeneracies Clipping', function() {
 
 
   describe('#on-point', function() {
+    it('should intersect two except for one point disjoint polygons - smallbase clip bottomTriangle', function() {
+      var result = onPoint.smallbase.clip(onPoint.bottomTriangle, true, true)
 
+      expect(result.length).to.equal(0)
+    })
+
+    it('should intersect two except for one point disjoint polygons - bottomTriangle clip smallbase', function() {
+      var result = onPoint.bottomTriangle.clip(onPoint.smallbase, true, true)
+
+      expect(result.length).to.equal(0)
+    })
+
+    it('should intersect two inherent polygons - bigbase clip topTriangle', function() {
+      var result = onPoint.bigbase.clip(onPoint.topTriangle, true, true)
+
+      expect(result.length).to.equal(1)
+      expect(result[0].shape).to.deep.equal(onPoint.topTriangle.getPoints())
+    })
+
+    it('should intersect two inherent polygons - topTriangle clip bigBase', function() {
+      var result = onPoint.topTriangle.clip(onPoint.bigbase, true, true)
+
+      expect(result.length).to.equal(1)
+      expect(result[0].shape).to.deep.equal(onPoint.topTriangle.getPoints())
+    })
+
+    it('should intersect two on-point polygons - smallbase clip topTriangle', function() {
+      var result = onPoint.smallbase.clip(onPoint.topTriangle, true, true)
+
+      expect(result.length).to.equal(1)
+      expect(result[0].shape).to.deep.equal([
+        [  2, 0],
+        [1.5, 1],
+        [2.5, 1]
+      ])
+    })
+
+    it('should intersect two on-point polygons - topTriangle clip smallbase', function() {
+      var result = onPoint.topTriangle.clip(onPoint.smallbase, true, true)
+
+      expect(result.length).to.equal(1)
+      expect(result[0].shape).to.deep.equal([
+        [  2, 0],
+        [1.5, 1],
+        [2.5, 1]
+      ])
+    })
+
+
+
+    it('should union two inherent polygons - bigbase clip topTriangle', function() {
+      var result = onPoint.bigbase.clip(onPoint.topTriangle, false, false)
+
+      expect(result.length).to.equal(1)
+      expect(result[0].shape).to.deep.equal(onPoint.bigbase.getPoints())
+    })
+
+    it('should union two inherent polygons - topTriangle clip bigbase', function() {
+      var result = onPoint.topTriangle.clip(onPoint.bigbase, false, false)
+
+      expect(result.length).to.equal(1)
+      expect(result[0].shape).to.deep.equal(onPoint.bigBase.getPoints())
+    })
+
+    it('should union two polygons - smallbase clip topTriangle', function() {
+      var result = onPoint.smallbase.clip(onPoint.topTriangle, false, false)
+
+      expect(result.length).to.equal(1)
+      expect(result[0].shape).to.deep.equal([
+        [  0, 0],
+        [  4, 0],
+        [  4, 1],
+        [2.5, 1],
+        [  3, 2],
+        [  1, 2],
+        [1.5, 1],
+        [  0, 1]
+      ])
+    })
+
+    it('should union two polygons - topTriangle clip smallbase', function() {
+      var result = onPoint.topTriangle.clip(onPoint.smallbase, false, false)
+
+      expect(result.length).to.equal(1)
+      expect(result[0].shape).to.deep.equal([
+        [  0, 0],
+        [  4, 0],
+        [  4, 1],
+        [2.5, 1],
+        [  3, 2],
+        [  1, 2],
+        [1.5, 1],
+        [  0, 1]
+      ])
+    })
+
+    it('should union two except for one point disjoint polygons - smallbase clip bottomTriangle', function() {
+      var result = onPoint.smallbase.clip(onPoint.bottomTriangle, false, false)
+
+      expect(result.length).to.equal(1)
+      expect(result[0].shape).to.deep.equal([
+        [0,  0],
+        [2,  0],
+        [1, -1],
+        [3, -1],
+        [2,  0],
+        [4,  0],
+        [4,  1],
+        [0,  1]
+      ])
+    })
+
+    it('should union two except for one point disjoint polygons - bottomTriangle clip smallbase', function() {
+      var result = onPoint.bottomTriangle.clip(onPoint.smallbase, false, false)
+
+      expect(result.length).to.equal(1)
+      expect(result[0].shape).to.deep.equal([
+        [0,  0],
+        [2,  0],
+        [1, -1],
+        [3, -1],
+        [2,  0],
+        [4,  0],
+        [4,  1],
+        [0,  1]
+      ])
+    })
+
+
+
+    it('should diff two inherent polygons - bigbase clip topTriangle', function() {
+      var result = onPoint.bigbase.clip(onPoint.topTriangle, false, true)
+
+      expect(result.length).to.equal(1)
+      expect(result[0].shape).to.deep.equal([
+        [0,0],
+        [2,0],
+        [1,2],
+        [3,2],
+        [2,0],
+        [4,0],
+        [4,4],
+        [0,4]
+      ])
+    })
+
+    it('should diff two inherent polygons - topTriangle clip bigbase', function() {
+      var result = onPoint.topTriangle.clip(onPoint.bigbase, false, true)
+
+      expect(result.length).to.equal(0)
+    })
+
+    it('should diff two polygons - smallbase clip topTriangle', function() {
+      var result = onPoint.smallbase.clip(onPoint.topTriangle, false, true)
+
+      expect(result.length).to.equal(2)
+      expect(result[0].shape).to.deep.equal([
+        [  0, 0],
+        [  2, 0],
+        [1.5, 1],
+        [  0, 1]
+      ])
+      expect(result[1].shape).to.deep.equal([
+        [  2, 0],
+        [  4, 0],
+        [  4, 1],
+        [2.5, 1]
+      ])
+    })
+
+    it('should diff two polygons - topTriangle clip smallbase', function() {
+      var result = onPoint.topTriangle.clip(onPoint.smallbase, false, true)
+
+      expect(result.length).to.equal(1)
+      expect(result[0].shape).to.deep.equal([
+        [1.5, 1],
+        [2.5, 1],
+        [  3, 2],
+        [  1, 2]
+      ])
+    })
+
+    it('should diff except for one point disjunct polygons - smallbase clip bottomTriangle', function() {
+      var result = onPoint.smallbase.clip(onPoint.bottomTriangle, false, true)
+
+      expect(result.length).to.equal(1)
+      expect(result[0].shape).to.deep.equal(onPoint.smallbase.getPoints())
+    })
+
+    it('should diff except for one point disjunct polygons - bottomTriangle clip smallbase', function() {
+      var result = onPoint.bottomTriangle.clip(onPoint.smallbase, false, true)
+
+      expect(result.length).to.equal(1)
+      expect(result[0].shape).to.deep.equal(onPoint.bottomTriangle.getPoints())
+    })
 
 
   })
