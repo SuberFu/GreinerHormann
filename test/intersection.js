@@ -40,4 +40,16 @@ describe('Intersection', function() {
 
     expect(i.isValid()).to.be.false
   })
+
+  it('should compute invalid intersection for degenerated case', function() {
+    var i = new Intersection(
+      {x: 0, y: 0},
+      {x: 1, y: 1},
+      {x: 1, y: 1},
+      {x: 2, y: 2}
+    )
+
+    expect(i.isValid()).to.be.false
+    expect(i.isDegenerated()).to.be.true
+  })
 })
