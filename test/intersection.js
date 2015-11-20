@@ -49,7 +49,6 @@ describe('Intersection', function() {
       {x: 2, y: 2}
     )
 
-    console.log(i)
     expect(i.isValid()).to.be.false
     expect(i.isDegenerated()).to.be.true
   })
