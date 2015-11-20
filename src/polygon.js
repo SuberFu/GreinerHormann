@@ -294,6 +294,19 @@ wrapIntoObject = function (listOfPoints, holes) {
   }
 };
 
+
+Polygon.prototype.reverse = function() {
+  var vertex = this.first
+  do {
+    var tmp = vertex.next
+    vertex.next = vertex.prev
+    vertex.prev = tmp
+
+    vertex = vertex.next
+  } while (vertex != this.first)
+}
+
+
 /**
  * Clip polygon against another one.
  * Result depends on algorithm direction:
@@ -311,12 +324,13 @@ Polygon.prototype.clip = function(clip, sourceForwards, clipForwards) {
     var union = !sourceForwards && !clipForwards
     var diff = !sourceForwards && clipForwards
 
-    // if (!this.isCounterClockwise()) {
-    //     sourceForwards = !sourceForwards;
-    // }
-    // if (!clip.isCounterClockwise()) {
-    //     clipForwards = !clipForwards;
-    // }
+    if (!this.isCounterClockwise()) {
+        this.reverse()
+    }
+    if (!clip.isCounterClockwise()) {
+        clip.reverse()
+    }
+
     if (!intersection && !union && !diff) {
       throw new Error('this clipping directions are not permitted')
     }
