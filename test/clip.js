@@ -1,17 +1,8 @@
 var chai = require('chai')
 var expect = chai.expect
 var Polygon = require('../src/polygon')
-
-function wrapIntoObject(shape, holes) {
-  if (undefined === holes) {
-    holes = []
-  }
-
-  return {
-    shape: shape,
-    holes: holes
-  }
-}
+var helpers = require('./helpers.js')
+var wrapIntoObject = helpers.wrapIntoObject
 
 
 describe('clip', function() {
