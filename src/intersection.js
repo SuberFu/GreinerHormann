@@ -1,3 +1,57 @@
+function equal(a, b, threshold) {
+  if (undefined === threshold) {
+    threshold = 0.00000000000001
+  }
+
+  return Math.abs(a - b) < threshold
+}
+
+function equalPoint(p1, p2) {
+  return equal(p1.x, p2.x) && equal(p1.y, p2.y)
+}
+
+/**
+ * Test if two lines have a start or end point in common and return their
+ * relation.
+ * @param {Vertex|Object} s1 - Source start point containing x, y keys
+ * @param {Vertex|Object} s2 - Source end point containing x, y keys
+ * @param {Vertex|Object} c1 - Clip start point containing x, y keys
+ * @param {Vertex|Object} c2 - Clip end point containing x, y keys
+ */
+function pointInCommon(s1, s2, c1, c2) {
+  // try all combinations
+  if (equalPoint(s1, c1)) {
+    return {
+      toSource: 0,
+      toClip: 0
+    }
+  }
+
+  if (equalPoint(s1, c2)) {
+    return {
+      toSource: 0,
+      toClip: 1
+    }
+  }
+
+  if (equalPoint(s2, c1)) {
+    return {
+      toSource: 1,
+      toClip: 0
+    }
+  }
+
+  if (equalPoint(s2, c2)) {
+    return {
+      toSource: 1,
+      toClip: 1
+    }
+  }
+
+  // no intersection found
+  return false
+}
+
 /**
  * Intersection
  * @param {Vertex} s1
@@ -40,7 +94,16 @@ var Intersection = function(s1, s2, c1, c2) {
   var denominator = (c2.y - c1.y) * (s2.x - s1.x) - (c2.x - c1.x) * (s2.y - s1.y);
 
   if (denominator === 0) {
-    return;
+    // do both lines have a point in common?
+    var alphaValues = pointInCommon(s1, s2, c1, c2)
+    if (alphaValues) {
+      this.toSource = alphaValues.toSource
+      this.toClip = alphaValues.toClip
+      this.x = s1.x + this.toSource * (s2.x - s1.x);
+      this.y = s1.y + this.toSource * (s2.y - s1.y);
+    }
+
+    return
   }
 
   var nominatorSource = (c2.x - c1.x) * (s1.y - c1.y) - (c2.y - c1.y) * (s1.x - c1.x)
