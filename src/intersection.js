@@ -153,7 +153,8 @@ Intersection.prototype.isValid = function() {
  * @return {Boolean}
  */
 Intersection.prototype.isDegenerated = function() {
-  return (0 == this.toSource) && (0 <= this.toClip && this.toClip <= 1);
+  return (this.toSource == 0 || this.toSource == 1)
+    && (this.toClip == 0 || this.toClip == 1)
 };
 
 module.exports = Intersection;
