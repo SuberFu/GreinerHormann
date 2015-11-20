@@ -190,7 +190,7 @@ Polygon.prototype.findIntersections = function(clip) {
               clipVertex, clip.getNext(clipVertex.next));
 
           // test if both edges really intersect
-          if (intersection.valid()) {
+          if (intersection.isValid()) {
             // create intersection vertices
             var sourceIntersection = Vertex.createIntersection(
               intersection.x,
@@ -277,7 +277,7 @@ Polygon.prototype.buildListOfPolygons = function () {
           current = current._corresponding;
       } while (!current._visited);
 
-      list.push(clipped.getPoints());
+      list.push(wrapIntoObject(clipped.getPoints()));
   }
 
   return list;
@@ -405,9 +405,12 @@ Polygon.prototype.clip = function(clip, sourceForwards, clipForwards) {
     // remove doubled last element
     else {
       for (var i = 0; i < list.length; i++) {
-        if (list[i][0][0] == list[i][list[i].length - 1][0] &&
-          list[i][0][1] == list[i][list[i].length - 1][1]) {
-          list[i].splice(-1, 1);
+        var shape = list[i].shape
+        var first = shape[0]
+        var last = shape[shape.length -1]
+
+        if (first[0] == last[0] && first[1] == last[1]) {
+          shape.splice(-1, 1)
         }
       }
     }
