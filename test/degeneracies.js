@@ -4,7 +4,11 @@ var Polygon = require('../src/polygon')
 
 describe('Degeneracies Clipping', function() {
 
-  
+  beforeEach(function() {
+    
+  }
+
+
   describe('#equal', function() {
 
 
