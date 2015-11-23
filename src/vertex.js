@@ -144,8 +144,16 @@ Vertex.prototype.isInside = function(poly) {
   return !!oddNodes;
 };
 
+/**
+ * Relative position is either 'in' or 'out'
+ * because other wise it would be an intersection.
+ * If it is an intersection, the relative position is set while
+ * computing the intersection
+ * (or converting an existing vertex to an intersection)
+ *
+ * @param {Polygon} poly - The polygon to set the position relative to
+ */
 Vertex.prototype.setRelativePosition = function (poly) {
-  // TODO: why not testing 'on'
   if (this.isInside(poly)) {
     this._relativePosition = 'in'
   } else {
