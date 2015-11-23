@@ -557,6 +557,28 @@ function removeFromPolygon(vertex) {
   vertex._corresponding._isIntersection = false;
 }
 
+/**
+  == labelEntryOrExit: intersection_vertex ==
+
+  pair <- intersection_vertex.relativePositionPair()
+
+  if pair is one of 'on/out', 'in/on', 'in/out'
+    intersection_vertex.label <- 'exit'
+  else if pair is one of 'on/in', 'out/on', 'out/in'
+    intersection_vertex.label <- 'entry'
+  else if pair is one of 'on/on', 'in/in', 'out/out'
+    npair <- intersection_vertex.neighbor.relativePositionPair()
+    if npair is one of 'on/on', 'in/in', 'out/out'
+      intersection_vertex.intersection <- false
+    else if pair is 'in/in'
+      intersection_vertex.label <- 'entry'
+    else if pair is 'out/out'
+      intersection_vertex.label <- 'exit'
+    else if pair is 'on/on'
+      intersection_vertex.label <- opposite of intersection_vertex.neighbor.label
+    end if
+  end if
+*/
 Polygon.prototype.labelEntryOrExit = function (vertex) {
   var currentPairing = vertex.getPairing();
   switch (currentPairing) {
@@ -597,6 +619,40 @@ Polygon.prototype.labelEntryOrExit = function (vertex) {
   }
 };
 
+/**
+  == labelEntriesAndExits: source, clip ==
+  = pre-condition: every vertex in source and clip is labelled as 'entry' =
+
+  for each vertex Si of source do
+    mark relative position of Si to clip
+      // out -> Si outside of clip
+      // in -> Si inside of clip
+      // on -> Si is intersection
+  end for
+
+  for each vertex Cj of clip do
+    mark relative position of Cj to clip
+  end for
+
+  for each vertex Si of source do
+    if Si is intersection
+      labelEntryOrExit Si
+      labelEntryOrExit Si.neighbor
+
+      if label of Si is 'entry' and label of Si.neighbor is 'entry'
+        Si.intersection <- false
+        mark relative position of Si as 'in'
+        Si.neighbor.intersection <- false
+        mark relative position of Si.neighbor as 'in'
+      else if label of Si is 'exit' and label of Si.neighbor is 'exit'
+        Si.intersection <- false
+        mark relative position of Si as 'out'
+        Si.neighbor.intersection <- false
+        mark relative position of Si.neighbor as 'out'
+      end if
+    end if
+  end for
+ */
 Polygon.prototype.labelEntriesAndExits = function(
   clip,
   sourceForwards,
@@ -776,7 +832,6 @@ Polygon.prototype.handleEdgeCases = function(list,
 
 
 /**
-
   == clip: source, clip, sourceForwards, clipForwards ==
 
   mode <- determineModeFrom sourceForwards, clipForwards
@@ -793,63 +848,7 @@ Polygon.prototype.handleEdgeCases = function(list,
   labelEntriesAndExits source, clip
   polygons <- buildPolygons source, clip, sourceForwards, clipForwards
   handleEdgeCases polygons, mode, source, clip
-
-  == labelEntryOrExit: intersection_vertex ==
-
-  pair <- intersection_vertex.relativePositionPair()
-
-  if pair is one of 'on/out', 'in/on', 'in/out'
-    intersection_vertex.label <- 'exit'
-  else if pair is one of 'on/in', 'out/on', 'out/in'
-    intersection_vertex.label <- 'entry'
-  else if pair is one of 'on/on', 'in/in', 'out/out'
-    npair <- intersection_vertex.neighbor.relativePositionPair()
-    if npair is one of 'on/on', 'in/in', 'out/out'
-      intersection_vertex.intersection <- false
-    else if pair is 'in/in'
-      intersection_vertex.label <- 'entry'
-    else if pair is 'out/out'
-      intersection_vertex.label <- 'exit'
-    else if pair is 'on/on'
-      intersection_vertex.label <- opposite of intersection_vertex.neighbor.label
-    end if
-  end if
-
-
-  == labelEntriesAndExits: source, clip ==
-  = pre-condition: every vertex in source and clip is labelled as 'entry' =
-
-  for each vertex Si of source do
-    mark relative position of Si to clip
-      // out -> Si outside of clip
-      // in -> Si inside of clip
-      // on -> Si is intersection
-  end for
-
-  for each vertex Cj of clip do
-    mark relative position of Cj to clip
-  end for
-
-  for each vertex Si of source do
-    if Si is intersection
-      labelEntryOrExit Si
-      labelEntryOrExit Si.neighbor
-
-      if label of Si is 'entry' and label of Si.neighbor is 'entry'
-        Si.intersection <- false
-        mark relative position of Si as 'in'
-        Si.neighbor.intersection <- false
-        mark relative position of Si.neighbor as 'in'
-      else if label of Si is 'exit' and label of Si.neighbor is 'exit'
-        Si.intersection <- false
-        mark relative position of Si as 'out'
-        Si.neighbor.intersection <- false
-        mark relative position of Si.neighbor as 'out'
-      end if
-    end if
-  end for
  **/
-
 /**
  * Clip polygon against another one.
  * Result depends on algorithm direction:
