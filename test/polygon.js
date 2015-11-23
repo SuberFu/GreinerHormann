@@ -137,9 +137,9 @@ describe('Polygon', function() {
     polygon.insertVertex(v2, previousVertex, subsequentVertex)
     polygon.insertVertex(v1, previousVertex, subsequentVertex)
 
-    expect(polygon.getNext(v1).equals(polygon.first)).to.be.true
-    expect(polygon.getNext(v2).equals(polygon.first)).to.be.true
-    expect(polygon.getNext(v3).equals(polygon.first)).to.be.true
+    expect(Polygon.getNext(v1).equals(polygon.first)).to.be.true
+    expect(Polygon.getNext(v2).equals(polygon.first)).to.be.true
+    expect(Polygon.getNext(v3).equals(polygon.first)).to.be.true
   })
 
   it('should give the first unvisited intersection', function() {

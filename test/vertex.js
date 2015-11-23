@@ -3,7 +3,7 @@ var expect = chai.expect
 var Vertex = require('../src/vertex')
 var Polygon = require('../src/polygon')
 
-describe('Vertex', function() {
+describe('Vertex Object', function() {
 
   it('should create a vertex from x,y', function() {
     var v = new Vertex(3,5)
@@ -104,5 +104,26 @@ describe('Vertex', function() {
     var v = new Vertex(2,0.5)
 
     expect(v.isInside(polygon)).to.be.false
+  })
+
+  it('should set relative position correctly', function() {
+    var polygon = new Polygon([
+      [0,0],
+      [1,0],
+      [1,1],
+      [0,1]
+    ])
+
+    var v1 = new Vertex(2, 0.5)
+    var v2 = new Vertex(0.5, 0.5)
+
+    expect(v1._relativePosition).to.be.null
+    expect(v2._relativePosition).to.be.null
+
+    v1.setRelativePosition(polygon)
+    v2.setRelativePosition(polygon)
+
+    expect(v1._relativePosition).to.equal('out')
+    expect(v2._relativePosition).to.equal('in')
   })
 })

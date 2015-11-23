@@ -1,5 +1,6 @@
 var Vertex = require('./vertex');
 var Intersection = require('./intersection');
+var util = require('./util')
 var area = require('area-polygon')
 
 
@@ -11,7 +12,6 @@ var area = require('area-polygon')
  * @constructor
  */
 var Polygon = function(p, arrayVertices) {
-
     /**
      * @type {Vertex}
      */
@@ -76,7 +76,7 @@ Polygon.prototype.insertVertex = function(vertex, start, end) {
     var prev, curr = start;
 
     while (!curr.equals(end) && curr._distance < vertex._distance) {
-        curr = curr.next;
+      curr = curr.next;
     }
 
     vertex.next = curr;
@@ -91,16 +91,30 @@ Polygon.prototype.insertVertex = function(vertex, start, end) {
 
 /**
  * Get next non-intersection point
- * @param  {Vertex} v
+ * @param  {Vertex} vertex
  * @return {Vertex}
  */
-Polygon.prototype.getNext = function(v) {
-    var c = v;
-    while (c._isIntersection) {
-        c = c.next;
+Polygon.getNext = function(vertex) {
+  var current = vertex.next
+  while (current._isIntersection) {
+    current = current.next
+    if (current == vertex) {
+      break
     }
-    return c;
+  }
+
+  return current
 };
+
+Polygon.prototype.getNextOrFirst = function(vertex) {
+  var next = vertex.next
+
+  while(next._isIntersection && next != this.first) {
+    next = next.next
+  }
+
+  return next
+}
 
 /**
  * Unvisited intersection
@@ -176,108 +190,504 @@ Polygon.prototype.isCounterClockwise = function() {
   return area(this.getPoints(), true) > 0
 };
 
-Polygon.prototype.findIntersections = function(clip) {
-  var sourceVertex = this.first;
-  var clipVertex = clip.first;
 
-  do {
-    if (!sourceVertex._isIntersection) {
-      do {
-        if (!clipVertex._isIntersection) {
-          var intersection = new Intersection(
-              sourceVertex,
-              this.getNext(sourceVertex.next),
-              clipVertex, clip.getNext(clipVertex.next));
+function linkVertices(v1, v2) {
+  v1._corresponding = v2
+  v2._corresponding = v1
+}
 
-          // test if both edges really intersect
-          if (intersection.isValid()) {
-            // create intersection vertices
-            var sourceIntersection = Vertex.createIntersection(
-              intersection.x,
-              intersection.y,
-              intersection.toSource
-            );
-            var clipIntersection = Vertex.createIntersection(
-              intersection.x,
-              intersection.y,
-              intersection.toClip
-            );
+function createIntersectionVertexFromPointOnLine(p, a1, a2) {
+  var distanceSourceClip = Math.sqrt(
+    Math.pow(p.x - a1.x, 2) +
+    Math.pow(p.y - a1.y, 2)
+  )
+  var distanceClipClip = Math.sqrt(
+    Math.pow(a2.x - a1.x, 2) +
+    Math.pow(a2.y - a1.y, 2)
+  )
 
-            // link vertices
-            sourceIntersection._corresponding = clipIntersection;
-            clipIntersection._corresponding = sourceIntersection;
+  return Vertex.createIntersection(
+    p.x,
+    p.y,
+    distanceSourceClip / distanceClipClip
+  )
+}
 
-            // sort vertices into polygons
-            this.insertVertex(
-                sourceIntersection,
-                sourceVertex,
-                this.getNext(sourceVertex.next));
-            clip.insertVertex(
-                clipIntersection,
-                clipVertex,
-                clip.getNext(clipVertex.next));
-          }
-        }
-        clipVertex = clipVertex.next;
-      } while (!clipVertex.equals(clip.first));
+function insertDegeneratedIntersection(context) {
+  if (
+    context.isCurrentVertexOnLine &&
+    !context.currentVertex._isIntersection
+  ) {
+    context.currentVertex._isIntersection = true
+
+    if (
+      context.isCorrespondingVertex1OnLine &&
+      context.currentVertex.equals(context.correspondingVertex1)
+    ) {
+      context.correspondingVertex1._isIntersection = true
+      linkVertices(
+        context.currentVertex,
+        context.correspondingVertex1
+      )
     }
 
-    sourceVertex = sourceVertex.next;
-  } while (!sourceVertex.equals(this.first));
+    else if (
+      context.isCorrespondingVertex2OnLine &&
+      context.currentVertex.equals(context.correspondingVertex2)) {
+      context.correspondingVertex2._isIntersection = true
+      linkVertices(
+        context.currentVertex,
+        context.correspondingVertex2
+      )
+    }
+
+    // no point in common
+    else {
+      var intersectionVertex = createIntersectionVertexFromPointOnLine(
+        context.currentVertex,
+        context.correspondingVertex1,
+        context.correspondingVertex2
+      )
+
+      linkVertices(context.currentVertex, intersectionVertex)
+
+      // sort into polygon
+      context.polygon.insertVertex(
+        intersectionVertex,
+        context.correspondingVertex1,
+        context.correspondingVertex2
+      )
+    }
+  }
 }
+
+
+
+/**
+  == find intersections: source, clip ==
+
+  for each vertex Si of source do
+    for each vertex Cj of clip do
+      if intersect(Si,Si+1,Cj,Cj+1,a,b)
+        I1 <- CreateVertex(Si,Si+1,a)
+        I2 <- CreateVertex(Cj,Cj+1,b)
+
+        link intersection points I1 and I2
+
+        if I1 is Si
+          mark Si as intersection
+        else if I1 is Si+1
+          mark Si+1 as intersection
+        else
+          sort I1 into source
+        endif
+
+        if I2 is Cj
+          mark Cj as intersection
+        else if I2 is Cj+1
+          mark Cj+1 as intersection
+        else
+          sort I2 into clip
+        end if
+      end if
+
+      if degenrated
+        compute degenerated intersection
+        mark Si, Si+1, Cj, Cj+1 as intersection, if they intersect
+      end if
+    end for
+  end for
+
+  Traverse source and clip polygon and compute intersections.
+  Insert intersections into polygons or mark points as intersections.
+  @param {Polygon} source
+  @param {Polygon} clip
+  @return undefined -- mutates input
+ */
+function findIntersections(source, clip) {
+  var sourceVertex = source.first
+  var clipVertex = clip.first
+
+  do {
+    var sourceNext = Polygon.getNext(sourceVertex)
+
+    do {
+      var clipNext = Polygon.getNext(clipVertex)
+      var intersection = new Intersection(
+        sourceVertex,
+        sourceNext,
+        clipVertex,
+        clipNext
+      )
+
+      // aribitrary intersection
+      if (intersection.isValid()) {
+        var sourceIntersection = Vertex.createIntersection(
+          intersection.x,
+          intersection.y,
+          intersection.toSource // sort via distance
+        )
+        var clipIntersection = Vertex.createIntersection(
+          intersection.x,
+          intersection.y,
+          intersection.toClip // sort via distance
+        )
+
+        // link vertices
+        sourceIntersection._corresponding = clipIntersection
+        clipIntersection._corresponding = sourceIntersection
+
+        // sort vertices into polygons
+        source.insertVertex(
+          sourceIntersection,
+          sourceVertex,
+          sourceNext
+        )
+        clip.insertVertex(
+          clipIntersection,
+          clipVertex,
+          clipNext
+        )
+      }
+
+      // one or both of the points are on the line of the others
+      if (intersection._isDegenerated) {
+
+        insertDegeneratedIntersection({
+          isCurrentVertexOnLine: intersection._onLine.s1,
+          currentVertex: sourceVertex,
+          isCorrespondingVertex1OnLine: intersection._onLine.c1,
+          correspondingVertex1: clipVertex,
+          isCorrespondingVertex2OnLine: intersection._onLine.c2,
+          correspondingVertex2: clipNext,
+          polygon: clip
+        })
+
+        insertDegeneratedIntersection({
+          isCurrentVertexOnLine: intersection._onLine.s2,
+          currentVertex: sourceNext,
+          isCorrespondingVertex1OnLine: intersection._onLine.c1,
+          correspondingVertex1: clipVertex,
+          isCorrespondingVertex2OnLine: intersection._onLine.c2,
+          correspondingVertex2: clipNext,
+          polygon: clip
+        })
+
+        insertDegeneratedIntersection({
+          isCurrentVertexOnLine: intersection._onLine.c1,
+          currentVertex: clipVertex,
+          isCorrespondingVertex1OnLine: intersection._onLine.s1,
+          correspondingVertex1: sourceVertex,
+          isCorrespondingVertex2OnLine: intersection._onLine.s2,
+          correspondingVertex2: sourceNext,
+          polygon: source
+        })
+
+        insertDegeneratedIntersection({
+          isCurrentVertexOnLine: intersection._onLine.c2,
+          currentVertex: clipNext,
+          isCorrespondingVertex1OnLine: intersection._onLine.s1,
+          correspondingVertex1: sourceVertex,
+          isCorrespondingVertex2OnLine: intersection._onLine.s2,
+          correspondingVertex2: sourceNext,
+          polygon: source
+        })
+
+        // if (intersection._onLine.s1) {
+        //   sourceVertex._isIntersection = true
+        //
+        //   if (intersection._onLine.c1 && sourceVertex.equals(clipVertex)) {
+        //     clipVertex._isIntersection = true
+        //     linkVertices(sourceVertex, clipVertex)
+        //   } else if (intersection._onLine.c2 && sourceVertex.equals(clipNext)) {
+        //     clipNext._isIntersection = true
+        //     linkVertices(sourceVertex, clipNext)
+        //   }
+        //
+        //   // no point in common
+        //   else {
+        //     var intersectionVertex = createIntersectionVertexFromPointOnLine(sourceVertex, clipVertex, clipNext)
+        //
+        //     linkVertices(sourceVertex, intersectionVertex)
+        //
+        //     // sort into polygon
+        //     clip.insertVertex(
+        //       intersectionVertex,
+        //       clipVertex,
+        //       clipNext
+        //     )
+        //   }
+        // }
+
+
+
+
+        // one point
+        // if (!intersection._inherentLines) {
+        //   console.log('non inherent', intersection)
+        //   var polygon = null
+        //   var intersectingVertex = null
+        //   var insertionPoint = null
+        //
+        //   // which of the points is an intersection?
+        //   if (0 === intersection.toSource) {
+        //     intersectingVertex = sourceVertex
+        //     insertionPoint = clipVertex
+        //     polygon = clip
+        //   }
+        //
+        //   if (1 === intersection.toSource) {
+        //     intersectingVertex = sourceNext
+        //     insertionPoint = clipVertex
+        //     polygon = clip
+        //   }
+        //
+        //   if (0 === intersection.toClip) {
+        //     intersectingVertex = clipVertex
+        //     insertionPoint = sourceVertex
+        //     polygon = source
+        //   }
+        //
+        //   if (1 === intersection.toClip) {
+        //     intersectingVertex = clipNext
+        //     insertionPoint = sourceVertex
+        //     polygon = source
+        //   }
+        //
+        //   // mark as intersection
+        //   intersectingVertex._isIntersection = true
+        //
+        //   // create new vertex
+        //   var intersectionVertex = Vertex.createIntersection(
+        //     intersection.x,
+        //     intersection.y,
+        //     polygon
+        //   )
+        //
+        //   // link
+        //   intersectingVertex._corresponding = intersectionVertex
+        //   intersectionVertex._corresponding = intersectingVertex
+        //
+        //   // sort into polygon
+        //   polygon.insertVertex(
+        //     intersectionVertex,
+        //     insertionPoint,
+        //     polygon.getNextOrFirst(insertionPoint)
+        //   )
+        // }
+        //
+        // // both points or more
+        // else {
+        //
+        // }
+      }
+
+      clipVertex = clip.getNextOrFirst(clipVertex)
+    } while(clipVertex != clip.first)
+
+    sourceVertex = source.getNextOrFirst(sourceVertex)
+  } while (sourceVertex != source.first)
+  // do {
+  //   if (!sourceVertex._isIntersection) {
+  //     sourceVertex.setRelativePosition(clip)
+  //     console.log('source', sourceVertex.x, sourceVertex.y)
+  //     do {
+  //       clipVertex.setRelativePosition(this)
+  //       console.log('clip', clipVertex.x, clipVertex.y)
+  //
+  //       if (!clipVertex._isIntersection) {
+  //         var intersection = new Intersection(
+  //             sourceVertex,
+  //             this.getNext(sourceVertex.next),
+  //             clipVertex, clip.getNext(clipVertex.next));
+  //         console.log('intersection', intersection)
+  //
+  //         // test if both edges really intersect
+  //         if (intersection.isValid()) {
+  //           // create intersection vertices
+  //           var isDegenerated = intersection.isDegenerated()
+  //           var sourceIntersection = Vertex.createIntersection(
+  //             intersection.x,
+  //             intersection.y,
+  //             intersection.toSource,
+  //             isDegenerated
+  //           );
+  //           var clipIntersection = Vertex.createIntersection(
+  //             intersection.x,
+  //             intersection.y,
+  //             intersection.toClip,
+  //             isDegenerated
+  //           );
+  //
+  //           // link vertices
+  //           sourceIntersection._corresponding = clipIntersection;
+  //           clipIntersection._corresponding = sourceIntersection;
+  //
+  //           // intersections are always on line
+  //           sourceIntersection._relativePosition = 'on'
+  //           clipIntersection._relativePosition = 'on'
+  //
+  //           // sort vertices into polygons
+  //           this.insertVertex(
+  //               sourceIntersection,
+  //               sourceVertex,
+  //               this.getNext(sourceVertex.next));
+  //           clip.insertVertex(
+  //               clipIntersection,
+  //               clipVertex,
+  //               clip.getNext(clipVertex.next));
+  //         }
+  //       }
+  //       clipVertex = clipVertex.next;
+  //     } while (!clipVertex.equals(clip.first));
+  //   }
+  //
+  //   sourceVertex = sourceVertex.next;
+  // } while (!sourceVertex.equals(this.first));
+}
+
+Polygon.prototype.findIntersections = function(clip) {
+  findIntersections(this, clip)
+}
+
+function removeFromPolygon(vertex) {
+  vertex._isRemoved = true;
+  vertex._isIntersection = false;
+  vertex._corresponding._isRemoved = true;
+  vertex._corresponding._isIntersection = false;
+}
+
+Polygon.prototype.labelEntryOrExit = function (vertex) {
+  var currentPairing = vertex.getPairing();
+  switch (currentPairing) {
+    case 'in/out':
+    case 'on/out':
+    case 'in/on':
+      vertex._isEntry = false;
+      break;
+    case 'out/in':
+    case 'on/in':
+    case 'out/on':
+      vertex._isEntry = true;
+      break;
+    case 'out/out':
+    case 'in/in':
+    case 'on/on':
+      var correspondingPairing = vertex._corresponding.getPairing();
+      if (
+        correspondingPairing === 'out/out'
+        || correspondingPairing === 'in/in'
+        || correspondingPairing === 'on/on'
+      ) {
+        removeFromPolygon(vertex)
+      } else {
+        if (currentPairing === 'out/out') {
+          vertex._isEntry = false
+        } else if (currentPairing == 'in/in') {
+          vertex._isEntry = true
+        } else if (currentPairing == 'on/on') {
+          labelEntryOrExit(vertex._corresponding);
+          vertex._isEntry = !vertex._corresponding._isEntry;
+        }
+      }
+      break;
+    default:
+      // This shouldn't ever happen - It's here to confirm nothing stupid is happening.
+      console.error('UNKNOWN TYPE', curr.pairing());
+  }
+};
 
 Polygon.prototype.labelEntriesAndExits = function(
   clip,
   sourceForwards,
   clipForwards
 ) {
-  var sourceVertex = this.first;
-  var clipVertex = clip.first;
+  var vertex = this.first
 
   do {
-    if (sourceVertex._isIntersection) {
-        sourceVertex._isEntry = sourceForwards;
-        sourceForwards = !sourceForwards;
-    }
-    sourceVertex = sourceVertex.next;
-  } while (!sourceVertex.equals(this.first));
+    if (vertex._isIntersection) {
+      this.labelEntryOrExit(vertex)
+      this.labelEntryOrExit(vertex._corresponding)
 
-  do {
-    if (clipVertex._isIntersection) {
-        clipVertex._isEntry = clipForwards;
-        clipForwards = !clipForwards;
+      // pair en/en
+      if (
+        vertex._isEntry
+        && vertex_.corresponding._isEntry
+      ) {
+        vertex._isIntersection = false
+        vertex._relativePosition = 'in'
+        vertex._corresponding._isIntersection = false
+        vertex._corresponding._relativePosition = 'in'
+      }
+
+      // pair ex/ex
+      else if (
+        !vertex._isEntry
+        && !vertex._corresponding._isEntry
+      ) {
+        vertex._isIntersection = false
+        vertex._relativePosition = 'out'
+        vertex._corresponding._isIntersection = false
+        vertex._corresponding._relativePosition = 'out'
+      }
     }
-    clipVertex = clipVertex.next;
-  } while (!clipVertex.equals(clip.first));
+  } while (vertex != this.first)
+
+  // var sourceVertex = this.first;
+  // var clipVertex = clip.first;
+  //
+  // do {
+  //   if (sourceVertex._isIntersection) {
+  //       sourceVertex._isEntry = sourceForwards;
+  //       sourceForwards = !sourceForwards;
+  //   }
+  //   sourceVertex = sourceVertex.next;
+  // } while (!sourceVertex.equals(this.first));
+  //
+  // do {
+  //   if (clipVertex._isIntersection) {
+  //       clipVertex._isEntry = clipForwards;
+  //       clipForwards = !clipForwards;
+  //   }
+  //   clipVertex = clipVertex.next;
+  // } while (!clipVertex.equals(clip.first));
+
 }
 
-Polygon.prototype.buildListOfPolygons = function () {
+Polygon.prototype.buildListOfPolygons = function (sourceForwards,
+                                                  clipForwards) {
   var list = [];
+  var sourceNext = sourceForwards ? 'next' : 'prev'
+  var sourcePrev = sourceForwards ? 'prev' : 'next'
+  var clipNext = clipForwards ? 'next' : 'prev'
+  var clipPrev = clipForwards ? 'prev' : 'next'
 
   while (this.hasUnprocessed()) {
-      var current = this.getFirstIntersection(),
-          // keep format
-          clipped = new Polygon([], this._arrayVertices);
+    var onClipped = false
+    var current = this.getFirstIntersection(),
+        // keep format
+        clipped = new Polygon([], this._arrayVertices);
 
-      clipped.addVertex(new Vertex(current.x, current.y));
-      do {
-          current.visit();
-          if (current._isEntry) {
-              do {
-                  current = current.next;
-                  clipped.addVertex(new Vertex(current.x, current.y));
-              } while (!current._isIntersection);
+    clipped.addVertex(new Vertex(current.x, current.y));
+    do {
+      current.visit();
+      if (current._isEntry) {
+        do {
+          current = current[onClipped ? clipNext : sourceNext];
+          clipped.addVertex(new Vertex(current.x, current.y));
+        } while (!current._isIntersection);
+      } else {
+        do {
+          current = current[onClipped ? clipPrev : sourcePrev];
+          clipped.addVertex(new Vertex(current.x, current.y));
+        } while (!current._isIntersection);
+      }
 
-          } else {
-              do {
-                  current = current.prev;
-                  clipped.addVertex(new Vertex(current.x, current.y));
-              } while (!current._isIntersection);
-          }
-          current = current._corresponding;
-      } while (!current._visited);
+      current = current._corresponding;
+      onClipped = !onClipped
+    } while (!current._visited);
 
-      list.push(wrapIntoObject(clipped.getPoints()));
+    list.push(wrapIntoObject(clipped.getPoints()));
   }
 
   return list;
@@ -364,6 +774,82 @@ Polygon.prototype.handleEdgeCases = function(list,
   }
 }
 
+
+/**
+
+  == clip: source, clip, sourceForwards, clipForwards ==
+
+  mode <- determineModeFrom sourceForwards, clipForwards
+
+  if source is clockwise
+    reverse source
+  end if
+
+  if clip is clockwise
+    reverse clip
+  end if
+
+  findIntersections source, clip
+  labelEntriesAndExits source, clip
+  polygons <- buildPolygons source, clip, sourceForwards, clipForwards
+  handleEdgeCases polygons, mode, source, clip
+
+  == labelEntryOrExit: intersection_vertex ==
+
+  pair <- intersection_vertex.relativePositionPair()
+
+  if pair is one of 'on/out', 'in/on', 'in/out'
+    intersection_vertex.label <- 'exit'
+  else if pair is one of 'on/in', 'out/on', 'out/in'
+    intersection_vertex.label <- 'entry'
+  else if pair is one of 'on/on', 'in/in', 'out/out'
+    npair <- intersection_vertex.neighbor.relativePositionPair()
+    if npair is one of 'on/on', 'in/in', 'out/out'
+      intersection_vertex.intersection <- false
+    else if pair is 'in/in'
+      intersection_vertex.label <- 'entry'
+    else if pair is 'out/out'
+      intersection_vertex.label <- 'exit'
+    else if pair is 'on/on'
+      intersection_vertex.label <- opposite of intersection_vertex.neighbor.label
+    end if
+  end if
+
+
+  == labelEntriesAndExits: source, clip ==
+  = pre-condition: every vertex in source and clip is labelled as 'entry' =
+
+  for each vertex Si of source do
+    mark relative position of Si to clip
+      // out -> Si outside of clip
+      // in -> Si inside of clip
+      // on -> Si is intersection
+  end for
+
+  for each vertex Cj of clip do
+    mark relative position of Cj to clip
+  end for
+
+  for each vertex Si of source do
+    if Si is intersection
+      labelEntryOrExit Si
+      labelEntryOrExit Si.neighbor
+
+      if label of Si is 'entry' and label of Si.neighbor is 'entry'
+        Si.intersection <- false
+        mark relative position of Si as 'in'
+        Si.neighbor.intersection <- false
+        mark relative position of Si.neighbor as 'in'
+      else if label of Si is 'exit' and label of Si.neighbor is 'exit'
+        Si.intersection <- false
+        mark relative position of Si as 'out'
+        Si.neighbor.intersection <- false
+        mark relative position of Si.neighbor as 'out'
+      end if
+    end if
+  end for
+ **/
+
 /**
  * Clip polygon against another one.
  * Result depends on algorithm direction:
@@ -408,7 +894,7 @@ Polygon.prototype.clip = function(clip, sourceForwards, clipForwards) {
     this.labelEntriesAndExits(clip, sourceForwards, clipForwards)
 
     // phase three - construct a list of clipped polygons
-    var list = this.buildListOfPolygons()
+    var list = this.buildListOfPolygons(sourceForwards, clipForwards)
     this.handleEdgeCases(
       list,
       clip,

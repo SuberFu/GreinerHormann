@@ -68,6 +68,12 @@ var Vertex = function(x, y) {
     this._isIntersection = false;
 
     /**
+     * Relative position of this vertex to the corresponding polygon
+     * @type {String} on | in | out
+     */
+    this._relativePosition = null;
+
+    /**
      * Loop check
      * @type {Boolean}
      */
@@ -82,11 +88,11 @@ var Vertex = function(x, y) {
  * @return {Vertex}
  */
 Vertex.createIntersection = function(x, y, distance) {
-    var vertex = new Vertex(x, y);
-    vertex._distance = distance;
-    vertex._isIntersection = true;
-    vertex._isEntry = false;
-    return vertex;
+    var vertex = new Vertex(x, y)
+    vertex._distance = distance
+    vertex._isIntersection = true
+    vertex._isEntry = false
+    return vertex
 };
 
 /**
@@ -116,26 +122,39 @@ Vertex.prototype.equals = function(v) {
  * @return {Boolean}
  */
 Vertex.prototype.isInside = function(poly) {
-    var oddNodes = false,
-        vertex = poly.first,
-        next = vertex.next,
-        x = this.x,
-        y = this.y;
+  var oddNodes = false,
+      vertex = poly.first,
+      next = vertex.next,
+      x = this.x,
+      y = this.y;
 
-    do {
-        if ((vertex.y < y && next.y >= y ||
-                next.y < y && vertex.y >= y) &&
-            (vertex.x <= x || next.x <= x)) {
+  do {
+    if (
+      (vertex.y < y && next.y >= y || next.y < y && vertex.y >= y)
+      && (vertex.x <= x || next.x <= x)
+    ) {
+      oddNodes ^= (vertex.x + (y - vertex.y) /
+                  (next.y - vertex.y) * (next.x - vertex.x) < x);
+    }
 
-            oddNodes ^= (vertex.x + (y - vertex.y) /
-                (next.y - vertex.y) * (next.x - vertex.x) < x);
-        }
+    vertex = vertex.next;
+    next = vertex.next || poly.first;
+  } while (!vertex.equals(poly.first));
 
-        vertex = vertex.next;
-        next = vertex.next || poly.first;
-    } while (!vertex.equals(poly.first));
+  return !!oddNodes;
+};
 
-    return !!oddNodes;
+Vertex.prototype.setRelativePosition = function (poly) {
+  // TODO: why not testing 'on'
+  if (this.isInside(poly)) {
+    this._relativePosition = 'in'
+  } else {
+    this._relativePosition = 'out'
+  }
+};
+
+Vertex.prototype.getPairing = function () {
+  return this.prev._relativePosition + '/' + this.next._relativePosition
 };
 
 module.exports = Vertex;
