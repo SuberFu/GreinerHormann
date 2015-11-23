@@ -38,7 +38,7 @@ describe('Vertex Object', function() {
     expect(v.y).to.equal(5)
     expect(v._distance).to.equal(10)
     expect(v._isIntersection).to.be.true
-    expect(v._isEntry).to.be.false
+    expect(v._isEntry).to.be.true
   })
 
   it('should detect two vertices as unequal', function() {

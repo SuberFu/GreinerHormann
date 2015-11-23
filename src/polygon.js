@@ -219,14 +219,12 @@ function insertDegeneratedIntersection(context) {
     !context.currentVertex._isIntersection
   ) {
     context.currentVertex._isIntersection = true
-    context.currentVertex._relativePosition = 'on'
 
     if (
       context.isCorrespondingVertex1OnLine &&
       context.currentVertex.equals(context.correspondingVertex1)
     ) {
       context.correspondingVertex1._isIntersection = true
-      context.correspondingVertex1._relativePosition = 'on'
 
       linkVertices(
         context.currentVertex,
@@ -238,7 +236,6 @@ function insertDegeneratedIntersection(context) {
       context.isCorrespondingVertex2OnLine &&
       context.currentVertex.equals(context.correspondingVertex2)) {
       context.correspondingVertex2._isIntersection = true
-      context.correspondingVertex2._relativePosition = 'on'
 
       linkVertices(
         context.currentVertex,
@@ -254,7 +251,10 @@ function insertDegeneratedIntersection(context) {
         context.correspondingVertex2
       )
 
-      linkVertices(context.currentVertex, intersectionVertex)
+      linkVertices(
+        context.currentVertex,
+        intersectionVertex
+      )
 
       // sort into polygon
       context.polygon.insertVertex(
@@ -317,6 +317,7 @@ function findIntersections(source, clip) {
 
     do {
       var clipNext = Polygon.getNext(clipVertex)
+
       var intersection = new Intersection(
         sourceVertex,
         sourceNext,
@@ -468,7 +469,7 @@ Polygon.prototype.labelEntryOrExit = function (vertex) {
         } else if (currentPairing == 'in/in') {
           vertex._isEntry = true
         } else if (currentPairing == 'on/on') {
-          labelEntryOrExit(vertex._corresponding);
+          this.labelEntryOrExit(vertex._corresponding);
           vertex._isEntry = !vertex._corresponding._isEntry;
         }
       }
@@ -478,6 +479,22 @@ Polygon.prototype.labelEntryOrExit = function (vertex) {
       console.error('UNKNOWN TYPE', currentPairing);
   }
 };
+
+function setRelativePositions(polygon, relativePolygon) {
+  var vertex = polygon.first
+  do {
+    if (vertex._isIntersection) {
+      vertex._relativePosition = 'on'
+    } else {
+      vertex.setRelativePosition(relativePolygon)
+    }
+    vertex = vertex.next
+  } while(vertex != polygon.first)
+}
+
+Polygon.prototype.setRelativePositions = function (polygon) {
+  setRelativePositions(this, polygon)
+}
 
 /**
   == labelEntriesAndExits: source, clip ==
@@ -547,6 +564,7 @@ Polygon.prototype.labelEntriesAndExits = function(
         vertex._corresponding._relativePosition = 'out'
       }
     }
+    vertex = vertex.next
   } while (vertex != this.first)
 }
 
@@ -723,12 +741,15 @@ Polygon.prototype.clip = function(clip, sourceForwards, clipForwards) {
     this.findIntersections(clip)
 
     // phase two - identify entry/exit points
+    this.setRelativePositions(clip)
+    clip.setRelativePositions(this)
+
     var sourceInClip = this.first.isInside(clip);
     var clipInSource = clip.first.isInside(this);
 
     // TODO: explain why
-    sourceForwards ^= sourceInClip;
-    clipForwards ^= clipInSource;
+    // sourceForwards ^= sourceInClip;
+    // clipForwards ^= clipInSource;
 
     this.labelEntriesAndExits(clip, sourceForwards, clipForwards)
 

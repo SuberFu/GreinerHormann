@@ -5,7 +5,7 @@ var helpers = require('./helpers.js')
 var wrapIntoObject = helpers.wrapIntoObject
 
 
-describe('clip', function() {
+describe('Arbitrary Clipping', function() {
 
   var disjoint = []
   var inherent = { in: null, out: null }

@@ -16,6 +16,9 @@ describe('Find Intersections', function() {
     var p2 = new Polygon(points)
 
     p1.findIntersections(p2)
+    p1.setRelativePositions(p2)
+    p2.setRelativePositions(p1)
+
 
     expect(p1.vertices).to.equal(4)
     expect(p2.vertices).to.equal(4)
@@ -66,6 +69,9 @@ describe('Find Intersections', function() {
     ])
 
     p1.findIntersections(p2)
+    p1.setRelativePositions(p2)
+    p2.setRelativePositions(p1)
+
 
     expect(p1.vertices).to.equal(6)
     expect(p2.vertices).to.equal(6)
@@ -145,6 +151,8 @@ describe('Find Intersections', function() {
     ])
 
     p1.findIntersections(p2)
+    p1.setRelativePositions(p2)
+    p2.setRelativePositions(p1)
 
     expect(p1.vertices).to.equal(6)
     expect(p2.vertices).to.equal(4)
@@ -214,6 +222,9 @@ describe('Find Intersections', function() {
     ])
 
     p1.findIntersections(p2)
+    p1.setRelativePositions(p2)
+    p2.setRelativePositions(p1)
+
 
     expect(p1.vertices).to.equal(4)
     expect(p2.vertices).to.equal(3)
