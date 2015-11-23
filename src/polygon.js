@@ -593,7 +593,7 @@ Polygon.prototype.labelEntryOrExit = function (vertex) {
       break;
     default:
       // This shouldn't ever happen - It's here to confirm nothing stupid is happening.
-      console.error('UNKNOWN TYPE', curr.pairing());
+      console.error('UNKNOWN TYPE', currentPairing);
   }
 };
 
@@ -612,7 +612,7 @@ Polygon.prototype.labelEntriesAndExits = function(
       // pair en/en
       if (
         vertex._isEntry
-        && vertex_.corresponding._isEntry
+        && vertex._corresponding._isEntry
       ) {
         vertex._isIntersection = false
         vertex._relativePosition = 'in'
