@@ -219,12 +219,15 @@ function insertDegeneratedIntersection(context) {
     !context.currentVertex._isIntersection
   ) {
     context.currentVertex._isIntersection = true
+    context.currentVertex._relativePosition = 'on'
 
     if (
       context.isCorrespondingVertex1OnLine &&
       context.currentVertex.equals(context.correspondingVertex1)
     ) {
       context.correspondingVertex1._isIntersection = true
+      context.correspondingVertex1._relativePosition = 'on'
+
       linkVertices(
         context.currentVertex,
         context.correspondingVertex1
@@ -235,6 +238,8 @@ function insertDegeneratedIntersection(context) {
       context.isCorrespondingVertex2OnLine &&
       context.currentVertex.equals(context.correspondingVertex2)) {
       context.correspondingVertex2._isIntersection = true
+      context.correspondingVertex2._relativePosition = 'on'
+
       linkVertices(
         context.currentVertex,
         context.correspondingVertex2

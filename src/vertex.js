@@ -92,6 +92,7 @@ Vertex.createIntersection = function(x, y, distance) {
     vertex._distance = distance
     vertex._isIntersection = true
     vertex._isEntry = false
+    vertex._relativePosition = 'on'
     return vertex
 };
 
