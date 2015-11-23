@@ -152,7 +152,6 @@ describe('Labelling Phase', function() {
       testResults,
       function(vertex, testResult) {
         if (vertex._isIntersection) {
-          console.log(vertex.x, vertex.y, vertex._isEntry, 't', testResult)
           expect(vertex._isEntry).to.equal(testResult)
           return true
         }
