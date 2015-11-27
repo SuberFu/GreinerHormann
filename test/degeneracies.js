@@ -86,7 +86,7 @@ describe('Degeneracies Clipping', function() {
       expect(result[0].shape).to.deep.equal(equal.small.getPoints())
     })
 
-    it.only('should return the bigger polygon as the union result - big clip small', function() {
+    it('should return the bigger polygon as the union result - big clip small', function() {
       var result = equal.big.clip(equal.small, false, false)
       expect(result.length).to.equal(1)
 
