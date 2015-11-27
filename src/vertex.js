@@ -78,6 +78,9 @@ var Vertex = function(x, y) {
      * @type {Boolean}
      */
     this._visited = false;
+
+
+    this._isRemoved = false;
 };
 
 /**

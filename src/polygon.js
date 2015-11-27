@@ -551,6 +551,9 @@ Polygon.prototype.labelEntriesAndExits = function(
         vertex._relativePosition = 'in'
         vertex._corresponding._isIntersection = false
         vertex._corresponding._relativePosition = 'in'
+        // TODO: is the following code needed?
+        // vertex._isRemoved = true
+        // vertex._corresponding._isRemoved = true
       }
 
       // pair ex/ex
@@ -562,6 +565,9 @@ Polygon.prototype.labelEntriesAndExits = function(
         vertex._relativePosition = 'out'
         vertex._corresponding._isIntersection = false
         vertex._corresponding._relativePosition = 'out'
+        // TODO: is the following code needed?
+        // vertex._isRemoved = true
+        // vertex._corresponding._isRemoved = true
       }
     }
     vertex = vertex.next
@@ -689,6 +695,51 @@ Polygon.prototype.handleEdgeCases = function(list,
 }
 
 
+Polygon.prototype.deleteVertex = function(vertex) {
+  vertex.next.prev = vertex.prev
+  vertex.prev.next = vertex.next
+  this.vertices--
+}
+
+
+Polygon.prototype.iterateOverVerticesAndDeleteNecessaryOnes = function() {
+  var v = this.first
+  do {
+    if (v._isRemoved) {
+      this.deleteVertex(v)
+    }
+    v = v.next;
+  } while (v !== this.first)
+}
+
+
+Polygon.prototype.deleteFirstVertex = function() {
+  if (this.first.next === this.first) {
+    this.first = null
+    this.vertices--
+  } else {
+    this.deleteVertex(this.first)
+    this.first = this.first.next
+  }
+}
+
+
+Polygon.prototype.deleteRemovedVertices = function() {
+  // set flag for deleting this.first after iterating over all vertices
+  var isFirstRemoved = false
+  if (this.first._isRemoved) {
+    isFirstRemoved = true
+    this.first._isRemoved = false
+  }
+
+  this.iterateOverVerticesAndDeleteNecessaryOnes()
+
+  if (isFirstRemoved) {
+    this.deleteFirstVertex()
+  }
+}
+
+
 /**
   == clip: source, clip, sourceForwards, clipForwards ==
 
@@ -752,6 +803,9 @@ Polygon.prototype.clip = function(clip, sourceForwards, clipForwards) {
     // clipForwards ^= clipInSource;
 
     this.labelEntriesAndExits(clip, sourceForwards, clipForwards)
+    // TODO: is the following code needed and on the right position of the algorithm?
+    // this.deleteRemovedVertices()
+    // clip.deleteRemovedVertices()
 
     // phase three - construct a list of clipped polygons
     var list = this.buildListOfPolygons(sourceForwards, clipForwards)
