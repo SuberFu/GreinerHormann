@@ -74,48 +74,65 @@ describe('Degeneracies Clipping', function() {
     it('should detect the smaller polygon as intersection - big clip small', function() {
       var result = equal.big.clip(equal.small, true, true)
       expect(result.length).to.equal(1)
-      expect(result[0].shape).to.deep.equal(equal.small.getPoints())
+      expect(result[0].shape).to.deep.equal([
+        [1,0],
+        [2,0],
+        [2,1],
+        [1,1]
+      ])
     })
 
     it('should detect the smaller polygon as intersection - small clip big', function() {
       var result = equal.small.clip(equal.big, true, true)
       expect(result.length).to.equal(1)
-
-      // TODO: somehow order is not preserved
-      equal.small.reverse()
-      expect(result[0].shape).to.deep.equal(equal.small.getPoints())
+      expect(result[0].shape).to.deep.equal([
+        [1,0],
+        [1,1],
+        [2,1],
+        [2,0]
+      ])
     })
 
     it('should return the bigger polygon as the union result - big clip small', function() {
       var result = equal.big.clip(equal.small, false, false)
       expect(result.length).to.equal(1)
-
-      // TODO: some how order is not preserved
-      console.log(result[0].shape)
-      equal.big.reverse()
-      console.log(equal.big.getPoints())
-      expect(result[0].shape).to.deep.equal(equal.big.getPoints())
+      expect(result[0].shape).to.deep.equal([
+        [ 1, 0 ],
+        [ 0, 0 ],
+        [ 0, 1 ],
+        [ 1, 1 ],
+        [ 2, 1 ],
+        [ 2, 0 ]
+      ])
     })
 
     it('should return the bigger polygon as the union result - small clip big', function() {
       var result = equal.small.clip(equal.big, false, false)
       expect(result.length).to.equal(1)
-      expect(result[0].shape).to.deep.equal(equal.big.getPoints())
+      expect(result[0].shape).to.deep.equal([
+        [1,0],
+        [2,0],
+        [2,1],
+        [0,1],
+        [0,0]
+      ])
     })
 
     it('should diff the smaller polygon from the bigger one', function() {
       var result = equal.big.clip(equal.small, false, true)
       expect(result.length).to.equal(1)
       expect(result[0].shape).to.deep.equal([
-        [0,0],
         [1,0],
-        [1,1],
-        [0,1]
+        [0,0],
+        [0,1],
+        [1,1]
       ])
     })
 
     it('should diff the big polygon from the smaller one and return empty result', function() {
       var result = equal.small.clip(equal.big, false, true)
+      // TODO: something's fucked up here
+      console.log(result[0].shape)
       expect(result.length).to.equal(0)
     })
 
@@ -130,6 +147,10 @@ describe('Degeneracies Clipping', function() {
         false
       )
 
+      // TODO: something's fucked up here
+      console.log(result[0].shape)
+      console.log("")
+      console.log(result[1].shape)
       expect(result.length).to.equal(1)
       expect(result[0].shape.length).to.equal(4)
       expect(result[0].shape).to.deep.equal([
@@ -147,6 +168,12 @@ describe('Degeneracies Clipping', function() {
         true
       )
 
+      // TODO: something's fucked up here
+      console.log(result[0].shape)
+      console.log("")
+      console.log(result[1].shape)
+      console.log("")
+      console.log(result[2].shape)
       expect(result.length).to.equal(1)
       expect(result[0].shape.length).to.equal(4)
       expect(result[0].shape).to.deep.equal([
@@ -164,6 +191,12 @@ describe('Degeneracies Clipping', function() {
         true
       )
 
+      // TODO: something's fucked up here
+      console.log(result[0].shape)
+      console.log("")
+      console.log(result[1].shape)
+      console.log("")
+      console.log(result[2].shape)
       expect(result.length).to.equal(1)
       expect(result[0].shape.length).to.equal(4)
       expect(result[0].shape).to.deep.equal([
@@ -194,19 +227,58 @@ describe('Degeneracies Clipping', function() {
       var result = onPoint.bigbase.clip(onPoint.topTriangle, true, true)
 
       expect(result.length).to.equal(1)
-      expect(result[0].shape).to.deep.equal(onPoint.topTriangle.getPoints())
+      expect(result[0].shape).to.deep.equal([
+        [2,0],
+        [3,2],
+        [1,2]
+      ])
     })
 
     it('should intersect two inherent polygons - topTriangle clip bigBase', function() {
       var result = onPoint.topTriangle.clip(onPoint.bigbase, true, true)
 
       expect(result.length).to.equal(1)
-      expect(result[0].shape).to.deep.equal(onPoint.topTriangle.getPoints())
+      expect(result[0].shape).to.deep.equal([
+        [2,0],
+        [3,2],
+        [1,2]
+      ])
     })
 
+    //only
     it('should intersect two on-point polygons - smallbase clip topTriangle', function() {
       var result = onPoint.smallbase.clip(onPoint.topTriangle, true, true)
 
+      console.log("smallbase:")
+      console.log("")
+      var vertex = onPoint.smallbase.first
+      do {
+        console.log(vertex.x, vertex.y)
+        console.log("Entry: ", vertex._isEntry)
+        console.log("Inter: ", vertex._isIntersection)
+        console.log("RePos: ", vertex._relativePosition)
+        console.log("Remov: ", vertex._isRemoved)
+        console.log("")
+        vertex = vertex.next
+      } while (vertex !== onPoint.smallbase.first)
+
+
+      console.log("")
+      console.log("")
+      console.log("topTriangle")
+      console.log("")
+      var vertex = onPoint.topTriangle.first
+      do {
+        console.log(vertex.x, vertex.y)
+        console.log("Entry: ", vertex._isEntry)
+        console.log("Inter: ", vertex._isIntersection)
+        console.log("RePos: ", vertex._relativePosition)
+        console.log("Remov: ", vertex._isRemoved)
+        console.log("")
+        vertex = vertex.next
+      } while (vertex !== onPoint.topTriangle.first)
+
+      console.log(result[0].shape)
       expect(result.length).to.equal(1)
       expect(result[0].shape).to.deep.equal([
         [  2, 0],
@@ -232,14 +304,24 @@ describe('Degeneracies Clipping', function() {
       var result = onPoint.bigbase.clip(onPoint.topTriangle, false, false)
 
       expect(result.length).to.equal(1)
-      expect(result[0].shape).to.deep.equal(onPoint.bigbase.getPoints())
+      expect(result[0].shape).to.deep.equal([
+        [0,0],
+        [4,0],
+        [4,4],
+        [0,4]
+      ])
     })
 
     it('should union two inherent polygons - topTriangle clip bigbase', function() {
       var result = onPoint.topTriangle.clip(onPoint.bigbase, false, false)
 
       expect(result.length).to.equal(1)
-      expect(result[0].shape).to.deep.equal(onPoint.bigBase.getPoints())
+      expect(result[0].shape).to.deep.equal([
+        [0,0],
+        [4,0],
+        [4,4],
+        [0,4]
+      ])
     })
 
     it('should union two polygons - smallbase clip topTriangle', function() {

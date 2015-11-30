@@ -265,4 +265,25 @@ describe('Intersection Object', function() {
     expect(i._onLine.c1).to.be.true
     expect(i._onLine.c2).to.be.true
   })
+
+  it('should set flags for crossing lines', function() {
+    var i = new Intersection(
+      {x: 4, y: 1},
+      {x: 1, y: 1},
+      {x: 1, y: 2},
+      {x: 2, y: 0}
+    )
+
+    expect(i.isValid()).to.be.true
+    expect(i._isDegenerated).to.be.false
+    expect(i._onLine.s1).to.be.false
+    expect(i._onLine.s2).to.be.false
+    expect(i._onLine.c1).to.be.false
+    expect(i._onLine.c2).to.be.false
+    expect(i.x).to.equal(1.5)
+    expect(i.y).to.equal(1)
+    expect(i.toSource).to.equal(0.8333333333333334)
+    expect(i.toClip).to.equal(0.5)
+  })
+
 })
