@@ -106,15 +106,6 @@ Polygon.getNext = function(vertex) {
   return current
 };
 
-Polygon.prototype.getNextOrFirst = function(vertex) {
-  var next = vertex.next
-
-  while(next._isIntersection && next != this.first) {
-    next = next.next
-  }
-
-  return next
-}
 
 /**
  * Unvisited intersection
@@ -400,10 +391,10 @@ function findIntersections(source, clip) {
 
       }
 
-      clipVertex = clip.getNextOrFirst(clipVertex)
+      clipVertex = Polygon.getNext(clipVertex)
     } while(clipVertex != clip.first)
 
-    sourceVertex = source.getNextOrFirst(sourceVertex)
+    sourceVertex = Polygon.getNext(sourceVertex)
   } while (sourceVertex != source.first)
 }
 
