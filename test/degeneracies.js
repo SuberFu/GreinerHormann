@@ -245,7 +245,6 @@ describe('Degeneracies Clipping', function() {
       ])
     })
 
-    //only
     it('should intersect two on-point polygons - smallbase clip topTriangle', function() {
       var result = onPoint.smallbase.clip(onPoint.topTriangle, true, true)
 
