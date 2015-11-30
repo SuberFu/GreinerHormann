@@ -81,6 +81,13 @@ var Vertex = function(x, y) {
 
 
     this._isRemoved = false;
+
+
+    /**
+     * Is it in the original polygon or inserted as a result of a clipping
+     * @type {Boolean}
+    */
+    this._isOriginal = true;
 };
 
 /**
@@ -92,6 +99,7 @@ var Vertex = function(x, y) {
  */
 Vertex.createIntersection = function(x, y, distance) {
     var vertex = new Vertex(x, y)
+    vertex._isOriginal = false;
     vertex._distance = distance
     vertex._isIntersection = true
     vertex._relativePosition = 'on'
