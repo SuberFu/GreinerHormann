@@ -248,41 +248,12 @@ describe('Degeneracies Clipping', function() {
     it('should intersect two on-point polygons - smallbase clip topTriangle', function() {
       var result = onPoint.smallbase.clip(onPoint.topTriangle, true, true)
 
-      console.log("smallbase:")
-      console.log("")
-      var vertex = onPoint.smallbase.first
-      do {
-        console.log(vertex.x, vertex.y)
-        console.log("Entry: ", vertex._isEntry)
-        console.log("Inter: ", vertex._isIntersection)
-        console.log("RePos: ", vertex._relativePosition)
-        console.log("Remov: ", vertex._isRemoved)
-        console.log("")
-        vertex = vertex.next
-      } while (vertex !== onPoint.smallbase.first)
-
-
-      console.log("")
-      console.log("")
-      console.log("topTriangle")
-      console.log("")
-      var vertex = onPoint.topTriangle.first
-      do {
-        console.log(vertex.x, vertex.y)
-        console.log("Entry: ", vertex._isEntry)
-        console.log("Inter: ", vertex._isIntersection)
-        console.log("RePos: ", vertex._relativePosition)
-        console.log("Remov: ", vertex._isRemoved)
-        console.log("")
-        vertex = vertex.next
-      } while (vertex !== onPoint.topTriangle.first)
-
       console.log(result[0].shape)
       expect(result.length).to.equal(1)
       expect(result[0].shape).to.deep.equal([
-        [  2, 0],
+        [2.5, 1],
         [1.5, 1],
-        [2.5, 1]
+        [  2, 0]
       ])
     })
 
@@ -291,9 +262,9 @@ describe('Degeneracies Clipping', function() {
 
       expect(result.length).to.equal(1)
       expect(result[0].shape).to.deep.equal([
+        [2.5, 1],
         [  2, 0],
-        [1.5, 1],
-        [2.5, 1]
+        [1.5, 1]
       ])
     })
 
@@ -434,10 +405,10 @@ describe('Degeneracies Clipping', function() {
 
       expect(result.length).to.equal(1)
       expect(result[0].shape).to.deep.equal([
-        [1.5, 1],
         [2.5, 1],
         [  3, 2],
-        [  1, 2]
+        [  1, 2],
+        [1.5, 1]
       ])
     })
 
