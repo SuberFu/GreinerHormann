@@ -270,4 +270,85 @@ describe('Find Intersections', function() {
 
   })
 
+  it('should find intersections for degenerated polygons', function() {
+    var p1 = new Polygon([
+      [0,0],
+      [4,0],
+      [4,1],
+      [0,1]
+    ])
+    var p2 = new Polygon([
+      [2,0],
+      [3,2],
+      [1,2]
+    ])
+
+    p1.findIntersections(p2)
+    p1.setRelativePositions(p2)
+    p2.setRelativePositions(p1)
+
+    expect(p1.vertices).to.equal(7)
+    expect(p2.vertices).to.equal(5)
+
+    expect(p1.getPoints()).to.deep.equal([
+      [ 0  , 0 ],
+      [ 2  , 0 ],
+      [ 4  , 0 ],
+      [ 4  , 1 ],
+      [ 2.5, 1 ],
+      [ 1.5, 1 ],
+      [ 0  , 1 ]
+    ])
+    expect(p2.getPoints()).to.deep.equal([
+      [2, 0],
+      [2.5, 1],
+      [3, 2],
+      [1, 2],
+      [1.5, 1]
+    ])
+
+    expect(p1.first._isIntersection).to.be.false
+    expect(p1.first.next._isIntersection).to.be.true
+    expect(p1.first.next.next._isIntersection).to.be.false
+    expect(p1.first.next.next.next._isIntersection).to.be.false
+    expect(p1.first.next.next.next.next._isIntersection).to.be.true
+    expect(p1.first.next.next.next.next.next._isIntersection).to.be.true
+    expect(p1.first.next.next.next.next.next.next._isIntersection).to.be.false
+
+    expect(p2.first._isIntersection).to.be.true
+    expect(p2.first.next._isIntersection).to.be.true
+    expect(p2.first.next.next._isIntersection).to.be.false
+    expect(p2.first.next.next.next._isIntersection).to.be.false
+    expect(p2.first.next.next.next.next._isIntersection).to.be.true
+
+    expect(p1.first._relativePosition).not.to.equal('on')
+    expect(p1.first.next._relativePosition).to.equal('on')
+    expect(p1.first.next.next._relativePosition).not.to.equal('on')
+    expect(p1.first.next.next.next._relativePosition).not.to.equal('on')
+    expect(p1.first.next.next.next.next._relativePosition).to.equal('on')
+    expect(p1.first.next.next.next.next.next._relativePosition).to.equal('on')
+    expect(p1.first.next.next.next.next.next.next._relativePosition).not.to.equal('on')
+
+    expect(p2.first._relativePosition).to.equal('on')
+    expect(p2.first.next._relativePosition).to.equal('on')
+    expect(p2.first.next.next._relativePosition).not.to.equal('on')
+    expect(p2.first.next.next.next._relativePosition).not.to.equal('on')
+    expect(p2.first.next.next.next.next._relativePosition).to.equal('on')
+
+    expect(p1.first._corresponding).to.deep.equal(null)
+    expect(p1.first.next._corresponding).to.deep.equal(p2.first)
+    expect(p1.first.next.next._corresponding).to.deep.equal(null)
+    expect(p1.first.next.next.next._corresponding).to.deep.equal(null)
+    expect(p1.first.next.next.next.next._corresponding).to.deep.equal(p2.first.next)
+    expect(p1.first.next.next.next.next.next._corresponding).to.deep.equal(p2.first.prev)
+    expect(p1.first.next.next.next.next.next.next._corresponding).to.deep.equal(null)
+
+    expect(p2.first._corresponding).to.deep.equal(p1.first.next)
+    expect(p2.first.next._corresponding).to.deep.equal(p1.first.next.next.next.next)
+    expect(p2.first.next.next._corresponding).to.deep.equal(null)
+    expect(p2.first.next.next.next._corresponding).to.deep.equal(null)
+    expect(p2.first.next.next.next.next._corresponding).to.deep.equal(p1.first.prev.prev)
+  })
+
+
 })
